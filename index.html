@@ -1,0 +1,68 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta http-equiv="content-type" content="text/html;charset=utf-8"> 
+    <title>Dejavis — Bars</title> 
+
+    <!-- Libs -->
+    <script type="text/javascript" src="./lib/underscore.js"></script>
+    <script type="text/javascript" src="./lib/jquery.js"></script>
+    <script type="text/javascript" src="./lib/backbone.js"></script>
+    <script type="text/javascript" src="./lib/data.js"></script>
+    <script type="text/javascript" src="./lib/d3.js"></script>
+
+    <!-- Data -->
+    <script type="text/javascript" src="./fixtures/items.js"></script>
+    
+    <!-- Visualization -->
+    <script type="text/javascript" src="./barchart.js"></script>
+    
+    <!-- App -->
+    <script type="text/javascript" src="./app.js"></script>
+    
+    <script type="text/x-ejs-template" name="application"> 
+      <div id="controls">
+        <div id="group">
+          <h2>Group by</h2>
+          <select id="group_key">
+            <option value="facility">Facility</option>
+            <option value="salesman">Salesman</option>
+            <option value="sales_channel">Sales Channel</option>
+          </select>
+        </div>
+      
+        <div id="properties">
+          <h2>Properties</h2>
+          <div id="selected_properties">
+            <% selected_properties.each(function(p, key, i) { %>
+              <a href="#"><div class="property remove" index="<%= i %>" property="<%= p.key %>">
+                <div class="color"></div>
+                <span><%= p.name %></span>
+              </div></a>
+            <% }); %>
+          </div>
+          
+          <% selectable_properties.each(function(p) { %>
+            <a href="#"><div class="property add" property="<%= p.key %>">
+              <div class="color"></div>
+              <span><%= p.name %></span>
+            </div></a>
+          <% }); %>
+        </div>
+      </div>
+
+      <div id="chart">
+        
+      </div>
+    </script>
+        
+    <style type="text/css">
+      @import url("./style.css");
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      
+    </div>
+  </body> 
+</html>
