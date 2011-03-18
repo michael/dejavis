@@ -14509,7 +14509,11 @@ var items_fixture = {
     "product_name": {
       "type": "string",
       "unique": true,
-      "name": "Produktname"
+      "name": "Produktname",
+      "meta": {
+        "facet": true,
+        "connector": "OR"
+      }
     },
     "dat": {
       "type": "string",
@@ -14569,7 +14573,11 @@ var items_fixture = {
     "salesman": {
       "type": "string",
       "unique": true,
-      "name": "Verkäufer"
+      "name": "Verkäufer",
+      "meta": {
+        "facet": true,
+        "connector": "OR"
+      }
     },
     "support_hardware": {
       "type": "number",

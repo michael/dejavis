@@ -1,3 +1,9 @@
+// Helpers
+
+_.dist = function(a, b) {
+  return Math.abs(a - b);
+}
+
 var items;
 
 var Barchart = function(el, options) {
@@ -5,39 +11,40 @@ var Barchart = function(el, options) {
   var id = options.id;
   var properties;
   var data;
-  var y; // y-Scale
-  var maxy;
-  var miny;
   var x; // x-Scale
+  var y; // y-Scale
+  var maxx;
+  var minx;
   var height,
       width,
-      padding;
-  
-  var colors = d3.scale.ordinal().range(['#8DB5C8', '#808E89', '#B16649', '#90963C', '#A2C355', '#93BAA1', '#86A2A9']);
+      barHeight = 20,
+      barOffset = 22,
+      itemOffset;
+      
+  var colors = d3.scale.ordinal().range(['#8DB5C8', '#90963C', '#B16649', '#A2C355', '#93BAA1', '#808E89', '#86A2A9']);
   
   function prepareData() {
-    maxy = d3.max(c.items(), function(d) {
+    maxx = d3.max(c.items(), function(d) {
       return d3.max(properties, function(p) {
         return d.get(p);
       });
     });
     
-    miny = d3.min(c.items(), function(d) {
+    minx = d3.min(c.items(), function(d) {
       return d3.min(properties, function(p) {
         return d.get(p);
       });
     });
     
-    y = d3.scale.linear()
-         .domain([miny, maxy])
-         .range([0, 250]);
+    x = d3.scale.linear()
+        .domain([Math.min(minx, 0), maxx])
+        .range([0, 600]);
   }
   
-  function renderItems() {
-    // Calc dimensions
-    height = 350;
-    width = c.items().length*200;
-    padding = 50;
+  function renderItems() {    
+    // padding = 50;
+    itemOffset = barOffset*properties.length+60;
+    height = (c.items().length)*itemOffset+50;
     
     // Cleanup
     d3.select(el).selectAll('*').remove();
@@ -46,33 +53,13 @@ var Barchart = function(el, options) {
     var chart = d3.select(el)
           .append("svg:svg")
           .attr("class", "chart")
-          .attr("width", width)
+          // .attr("width", width)
           .attr("height", height)
           .attr("fill", "#ccc")
             .append("svg:g")
             .attr("class", "plotarea")
-            .attr("fill", "#eee")
             .attr('width', 50)
-            // Flip coordinate system
-            .attr("transform", "translate(60, "+(height-50)+") scale(1, -1)")
-    
-    // Rulers
-    var rules = chart.selectAll("g.rule")
-      .data(y.ticks(5))
-      .enter().append("svg:g")
-        .attr('class', 'rule')
-        .attr('transform', function(d) { return 'translate(0, '+ (~~y(d)+0.5) +')' })
-    
-    rules.append('svg:line')
-      .attr("x2", width)
-      .attr("stroke", "#ccc");
-        
-    rules.append('svg:text')
-      .attr("class", "label")
-      .attr("transform", "scale(1, -1) translate(-20, 1)") // invert flipped coordinate system
-      .attr("fill", "#444")
-      .attr("text-anchor", "end")
-      .text(function(d) { return d; })
+            .attr("transform", "translate(20, 50)")
         
     
     // Items
@@ -82,11 +69,45 @@ var Barchart = function(el, options) {
         .selectAll('g.item')
         .data(c.items())
         .enter().append("svg:g")
-          .attr("width", 10)
-          .attr("height", 60)
           .attr("class", "item")
-          .attr("transform", function(d, i) { return "translate("+i*200+", 0)"; })
-    
+          .attr("transform", function(d, i) { return "translate(0, "+(i*itemOffset-0.5)+")"; })
+        
+    // Rulers
+    var rules = chart.selectAll("g.rule")
+      .data(x.ticks(5))
+      .enter().append("svg:g")
+        .attr('class', 'rule')
+        .attr('transform', function(d) { return 'translate('+ (~~x(d)-0.5) +', 0)' })
+
+    rules.append('svg:line')
+      // .attr("y1", -10)
+      .attr("y2", -10)
+      // .attr("stroke", function(d) { return d !== 0 ? "#fff" : "#666"})
+      .attr("stroke", '#666')
+      .attr("stroke-width", function(d) { return d !== 0 ? "1" : "1"});
+
+    rules.append('svg:text')
+      .attr("class", "label")
+      .attr("transform", "translate(0, -20)") // invert flipped coordinate system
+      .attr("fill", "#444")
+      .attr("text-anchor", "middle")
+      .text(function(d) { return d; })
+
+
+    // Item separator
+    // var itemRules = items.append("svg:line")
+    //     .attr("x2", 400)
+    //     .attr("stroke", "#ccc")
+    //     .attr('transform', function(d) { return 'translate('+ (~~x(d)+0.5) +', 0)' })
+
+
+    // Zero line
+    // chart.append('svg:line')
+    //   .attr("x1", ~~x(0)-0.5)
+    //   .attr("x2", ~~x(0)-0.5)
+    //   // .attr("y", 100)
+    //   .attr("y2", height)
+    //   .attr("stroke", '#888')
     
     // Bars (Container)
     // --------------
@@ -96,28 +117,51 @@ var Barchart = function(el, options) {
                 return d.get(property); // the value
               });
             }).enter().append("svg:g")
-              .attr("transform", function(d,i) { return "translate("+20*i+", 0)"; })
+              .attr("class", "bar")
+              .attr("transform", function(d,i) {
+                var xx = d < 0 ? x(0) - _.dist(x(d), x(0)) : x(0);
+                xx = ~~xx;
+                return "translate("+xx+", "+(60+barOffset*i+0.5)+")";
+              });
+
+    bars.on("mouseover", function(d) {
+      d3.select(this).selectAll('text')
+        .attr('fill', '#444');
+      d3.select(this).selectAll('rect')
+        .attr('opacity', 1.0);  
+    }).on("mouseout", function(d) {
+      d3.select(this).selectAll('text')
+        .attr('fill', '#999');
+      d3.select(this).selectAll('rect')
+        .attr('opacity', 0.8);
+    });
     
     // Bars (Rectangle)
     // --------------
       
     bars.append('svg:rect')
-      .attr("height", function(d, i) { return y(d); })
-      .attr("width", 20)
-      .attr("x", function(d, i) { return 20*i; })
+      .attr("height", barHeight)
+      .attr("width", function(d, i) { return Math.max(~~_.dist(x(d), x(0)), 2); })
       .attr("fill", function(d, i) { return colors(i); })
-    
-    
+      .attr("opacity", 0.8)
+      
+    bars.append('svg:text')
+      .text(function(d) { return ~~d; })
+      .attr("x", function(d, i) { 
+        return ~~_.dist(x(d), x(0));
+      })
+      .attr("transform", "translate(5, 14)")
+      .attr("fill" , "#999")
+
     // Append labels
     // --------------
     
-    bars = d3.selectAll('g.item')
-    
-    bars.append("svg:text")
-        .attr("class", "label")
-        .attr("transform", "scale(1, -1) rotate(0) translate(0, 20) ")
+    items.append("svg:text")
+        .attr("class", "item-label")
+        .attr("transform", "translate("+ ~~x(0) +", 40)")
         .attr("fill", "#444")
         .text(function(d, i) { return d.get(id[0]); });
+
   }
   
   function render() {
