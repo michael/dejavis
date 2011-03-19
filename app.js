@@ -20,15 +20,10 @@ var Visualization = Backbone.View.extend({
     
     // Default properties
     this.properties = new Data.Hash({
-      "profit_margin_total_volume": {aggregator: Data.Aggregators.SUM},
-      "support_click": {aggregator: Data.Aggregators.SUM},
-      "support_additional_service": {aggregator: Data.Aggregators.SUM}
     });
     
-    // this.properties = new Data.Hash();
-    
     this.groupKey = ["facility"];
-    
+        
     // Pregrouping
     this.groupedItems = this.model.group(this.groupKey, this.properties.toJSON());
     
@@ -201,7 +196,8 @@ var Sheet = Backbone.View.extend({
   
   // Get values (=facet-choices) for a particular property
   valuesForProperty: function(property) {
-    var activeItems;
+    var activeItems,
+        values;
     
     this.filters.each(function(filter, key, index) {
       if (key !== property && filter.values.length > 0) {
@@ -214,7 +210,7 @@ var Sheet = Backbone.View.extend({
     });
     
     if (!activeItems) {
-      return this.collection.properties().get(property).all('values');
+      values = this.collection.properties().get(property).all('values');
     } else {
       // Construct a collection and use it for value extraction
       var props = {};
@@ -223,8 +219,18 @@ var Sheet = Backbone.View.extend({
         items: activeItems.toJSON(),
         properties: props
       });
-      return c.properties().get(property).all('values')
+      values = c.properties().get(property).all('values')
     }
+    
+    // Sort values
+    var DESC_BY_OBJECT_COUNT = function(item1, item2) {
+      var v1 = item1.value.referencedObjects.length,
+          v2 = item2.value.referencedObjects.length;
+      return v1 === v2 ? 0 : (v1 > v2 ? -1 : 1);
+    };
+    
+    return values.sort(DESC_BY_OBJECT_COUNT);
+    
   },
   
   // Perform filters on the input collection
