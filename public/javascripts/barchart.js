@@ -60,7 +60,6 @@ var Barchart = function(el, options) {
             .attr("class", "plotarea")
             .attr('width', 50)
             .attr("transform", "translate(20, 50)")
-        
     
     // Items
     // --------------

@@ -1,0 +1,324 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta http-equiv="content-type" content="text/html;charset=utf-8"> 
+    <title>Dejavis — Visual Analytics For The Web </title> 
+    
+    <script>
+      var seed = {{{{seed}}}};
+      var session = {{{{session}}}};
+    </script>
+    
+    <script type="text/x-ejs-template" name="header">
+      <div class="title">
+        Dejavis
+      </div>
+      <div id="sync_state"></div>
+      <div id="login_state">
+        <div id="login">
+          <% if (user) { %>
+            <div>
+              <a href="#<%= user.get('username') %>"><b><%= user.get('name') || user.get('username') %></b></a>
+              <a href="#" class="toggle-user-settings">Account Settings</a>
+              <a href="#logout" class="logout">Logout</a>
+            </div>
+          <% } else { %>
+            <form id="login-form" class="auth-form">
+              <input type="text" name="username" class="hint" id="login-user" value="username">
+              <input type="password" name="password" class="hint" id="login-password" value="password">
+              <input type="submit" value="Login"/>
+            </form>
+            <div class="signup">
+              New to Dejavis? <a href="#signup" class="toggle-signup">Create an Account</a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </script>
+    
+    <!-- name="project" ? -->
+    <script type="text/x-ejs-template" name="sheet">
+      <div id="container">
+        <div id="sheet">
+          <div id="browser">
+          
+          </div>
+          <div id="visualization">
+          
+          </div>
+        </div>
+      </div>
+    </script>
+    
+    <script type="text/x-ejs-template" name="browser">
+      <div id="browser_actions" class="view-actions">
+      </div>
+      
+      <% if (user) { %>
+        <div id="user_profile">
+          <div class="container">
+            <div class="avatar">
+              <img<% if (user.get('username') === app.username) { %> title="Change your avatar at Gravatar.com"<% } %> class="left" src="<%= _.gravatar(user.get('email'), 100) %>"/>
+            </div>
+            <div class="username">
+              <h1><%= user.get('name') %></h1>
+              <p><em>as</em> <b><%= user.get('username') %></b> <em>since</em> <%= _.date(user.get('created_at')) %></p>
+            </div>
+            <div class="attributes">
+              <% if (user.get('location')) { %>
+                <span><em>Located in</em> <%= user.get('location') %></span>
+              <% } %>
+
+              <% if (user.get('company')) { %>
+                <span><em>Works at</em> <%= user.get('company') %></span>
+              <% } %>
+
+              <% if (user.get('website')) { %>
+                <span><em>Website at</em> <a target="_blank" href="<%= user.get('website') %>"><%= user.get('website') %></a></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+      
+      <div id="browser_inner_wrapper">
+        <% if (projects.length > 0) { %>
+          <div id="browser">
+
+            
+            <!--<div id="facets">
+            </div>-->
+
+            <div id="documents">
+              <h2><%= projects.length %> Project<%= projects.length > 1 ? 's' : '' %></h2>
+              <table>
+                <thead>
+                  <tr><th>Title</th><th>Author</th><th>Published</th><th class="right-align">Last modified</th></tr>
+                </thead>
+                <tbody>
+                <% projects.each(function(project) { %> 
+                  <tr class="<%= project.get('published_on') ? 'published' : 'draft' %>">
+                    <th><a class="link load-project" href="#<%= project.get('creator')._id.split('/')[2] %>/<%= project.get('name') %>" project="<%= project._id %>" user="<%= project.get('creator')._id.split('/')[2] %>" name="<%= project.get('name') %>"><%= project.get('title') || 'Untitled' %><span class="document-type">Visualization Project</span></a></th>
+                    <td><%= project.get('creator').get('name') || project.get('creator').get('username') || project.get('creator')._id.split('/')[2]%></td>
+                    <td>
+                      <% if (project.get('published_on')) { %>
+                        <%= _.date(project.get('published_on')) %>
+                      <% } else { %>
+                        - - -
+                      <% } %>
+                    </td>
+                    <td class="right-align"><%= _.prettyDate(project.get('updated_at')) %></td>
+                  </tr>
+                <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% } else { %>
+          <div id="documents">
+            <h2>No Documents ...</h2>
+          </div>
+        <% } %>
+      </div>
+      
+    </script>
+    
+    <script type="text/x-ejs-template" name="startpage">
+      <div id="startpage">
+        Welcome to Dejavis. Please log in with your usename and password.
+      </div>
+    </script>
+    
+    <script type="text/x-ejs-template" name="visualization">
+      <div id="settings">
+        <div id="group">
+          <h3>Group by</h3>
+
+          <select id="group_key">
+            <% group_keys.each(function(p) { %>
+              <option value="<%= p.key %>"<% if (group_key[0] === p.key) {%> selected="selected"<% } %>>
+                <%= p.name %> (<%= p.all('values').length %>)
+              </option>
+            <% }); %>
+          </select>
+        </div>
+        
+        <div id="properties">
+          <h3>Properties</h3>
+          <div id="selected_properties">
+            <% selected_properties.each(function(p, key, i) { %>
+              <a href="#"><div class="property remove" index="<%= i %>" property="<%= p.key %>">
+                <div class="color"></div>
+                <span><%= p.name %></span>
+              </div></a>
+            <% }); %>
+          </div>
+        
+          <% selectable_properties.each(function(p) { %>
+            <a href="#"><div class="property add" property="<%= p.key %>">
+              <div class="color"></div>
+              <span><%= p.name %></span>
+            </div></a>
+          <% }); %>
+        </div>
+      </div>
+      
+      <div id="canvas">
+        
+      </div>
+    </script>
+    
+    <script type="text/x-handlebars-template" name="browser_not_supported">
+      <div class="browser-not-supported">
+        <h1>Dejavis.org
+          <p>Visual Analytics for the Browser</p>
+        </h1>
+        <div></div>
+        <div class="lpl texteditor">
+          <h2>Browser not supported</h2>
+          <p>
+            Dejavis makes use of the latest browser technology. In order to create, publish<br/> and view visualizations online,
+            you need to upgrade your browser.
+          </p>
+
+          <p class="recommendation">We recommend one of these:</p>
+          <div style="text-align: center;">
+            <a href="http://www.google.com/chrome/" title="Google Chrome"><img src="/images/chrome.png"/></a>
+            <a href="http://www.apple.com/safari/" title="Apple Safari"><img src="/images/safari.png"/></a>
+            <a href="http://www.mozilla.com/en-US/firefox/beta/" title="Firefox 4 Beta"><img src="/images/firefox.png"/></a>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/x-ejs-template" name="project">
+      <div id="item_browser">
+        <div id="facets">
+          Showing <%= filtered_collection.items().length %> items out of <%= collection.items().length %> total
+          <h2>Filter</h2>
+          <div class="list">
+
+            <% facets.each(function(facet) { %>
+              <div class="facet" operator="|=" property="<%= facet.property.key %>">
+                <h3><%= facet.property.name %></h3>
+                <ul class="facet-choices">
+                  <% facet.selected_choices.each(function(choice) { %>
+                    <li class="facet-choice selected">
+                      <a href="#" class="remove-choice" property="<%= facet.property.key %>" operator="|=" value="<%= choice._id %>">
+                        <div class="tick-icon"></div>
+                        <%= choice.name %>
+                        <span class="item-count"><%= choice.count %></span>
+                      </a>
+                    </li>
+                  <% }); %>
+                </ul>
+                <ul class="facet-choices-available">
+                  <% facet.choices.each(function(choice) { %>
+                    <li class="facet-choice">
+                      <a href="#" class="add-choice" property="<%= facet.property.key %>" operator="|=" value="<%= choice._id %>">
+                        <div class="tick-icon ticked"></div>
+                        <%= choice.name %>
+                        <span class="item-count"><%= choice.count %></span>
+                      </a>
+                    </li>
+                  <% }); %>
+                </ul>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+        
+        <div id="visualization">
+          Loading Visualization ...
+        </div>
+      </div>
+    </script>
+    
+    
+    <!-- Libs -->
+    <script type="text/javascript" src="/javascripts/underscore.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.js"></script>
+    <script type="text/javascript" src="/javascripts/backbone.js"></script>
+    <script type="text/javascript" src="/javascripts/data.js"></script>
+    <script type="text/javascript" src="/javascripts/d3.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.timeago.js"></script>
+    <script type="text/javascript" src="/javascripts/head.min.js"></script>
+    
+    <!-- Helpers -->
+    <script type="text/javascript" src="/javascripts/notifier.js"></script>
+    <script type="text/javascript" src="/javascripts/helpers.js"></script>
+    
+    <!-- Data -->
+    <script type="text/javascript" src="/javascripts/hardware_report.js"></script>
+    
+    <!-- Visualization -->
+    <script type="text/javascript" src="/javascripts/barchart.js"></script>
+    
+    <!-- Controllers -->
+    <script type="text/javascript" src="/javascripts/controllers/application.js"></script>
+    
+    <!-- Views -->
+    <script type="text/javascript" src="/javascripts/views/header.js"></script>
+    <script type="text/javascript" src="/javascripts/views/project.js"></script>
+    <script type="text/javascript" src="/javascripts/views/browser.js"></script>
+    <script type="text/javascript" src="/javascripts/views/visualization.js"></script>
+    
+    <!-- App -->
+    <script type="text/javascript" src="/javascripts/app.js"></script>
+    
+    <style type="text/css">
+      @import url("/stylesheets/reset.css");
+      @import url("/stylesheets/style.css");
+    </style>
+  </head>
+  <body>
+    
+    <div id="container">
+      <div id="header">
+
+      </div>
+
+      <div id="tabs">
+        <div id="browser_tab" class="tab" view="browser">
+          
+        </div>
+
+        <div id="document_tab" class="tab hidden" view="document">
+        </div>
+
+        <a href="#" class="action new-document hidden" title="Create a new document">
+          <div class="view-action-icon new"></div>
+        </a>
+      </div>
+
+      <div id="main">
+        <!-- Various content (used for user settings dialogue etc.) -->  
+        <div id="content_wrapper" class="view">
+          
+        </div>
+
+        <!-- The document browser -->
+        <div id="browser_wrapper" class="view hidden">
+        </div>
+
+        <!-- The document browser -->
+        <div id="project_wrapper" class="view hidden">
+          
+        </div>
+      </div>
+      <div id="footer">
+        <div class="credits"><a href="http://substance.io#substance/dejavis">About</a> &middot; <a href="http://twitter.com/_dejavis" target="_new">Twitter</a> &middot; <a href="http://github.com/michael/dejavis" target="_new">Source Code</a> &middot; <a href="http://github.com/michael/dejavis/issues" target="_new">Report Bugs</a></div>
+        <div class="version"><a href="http://substance.io#substance/release-notes">Dejavis 0.1.0-dev</a></div>
+      </div>
+    </div>
+    
+    <div id="notifications">
+      <div class="wrapper">
+      </div>
+    </div>
+
+    <div class="tooltip">
+
+    </div>
+  </body> 
+</html>

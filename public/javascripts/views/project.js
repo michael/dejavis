@@ -1,132 +1,38 @@
-// Helpers
+// Project
 // --------------
 
-_.tpl = function(tpl, ctx) {
-  source = $("script[name="+tpl+"]").html();
-  return _.template(source, ctx);
-};
-
-// Visualization
-// --------------
-
-var Visualization = Backbone.View.extend({
-  events: {
-    'change #group_key': 'updateGroupKey',
-    'click .property.add': 'addProperty',
-    'click .property.remove': 'removeProperty'    
-  },
-  
-  initialize: function() {
-    
-    // Default properties
-    this.properties = new Data.Hash({
-    });
-    
-    this.groupKey = ["facility"];
-        
-    // Pregrouping
-    this.groupedItems = this.model.group(this.groupKey, this.properties.toJSON());
-    
-    // Initialize visualizatoin instance
-    this.visualization = new Barchart('#canvas', {});
-  },
-  
-  updateGroupKey: function() {
-    this.groupKey = [$('#group_key').val()];
-    this.compute();
-    this.render();
-    return false;
-  },
-  
-  addProperty: function(e) {
-    this.properties.set($(e.currentTarget).attr('property'), {aggregator: Data.Aggregators.SUM});
-    this.compute();
-    this.render();
-    return false;
-  },
-  
-  removeProperty: function(e) {
-    this.properties.del($(e.currentTarget).attr('property'));
-    this.compute();
-    this.render();
-    return false;
-  },
-  
-  availableProperties: function() {
-    return this.model.properties().select(function(p) {
-      return p.expectedTypes[0] === 'number' && p.unique === true
-    });
-  },
-  
-  selectableProperties: function() {
-    var that = this;
-    return this.availableProperties().select(function(p) {
-      return !that.properties.get(p.key);
-    });
-  },
-  
-  selectedProperties: function() {
-    var that = this;
-    return this.availableProperties().select(function(p) {
-      return that.properties.get(p.key);
-    });
-  },
-  
-  // Extract group keys
-  groupKeys: function() {
-    return this.model.properties().select(function(p) {
-      return p.expectedTypes[0] === 'string' && p.unique
-    });
-  },
-  
-  compute: function() {
-    this.groupedItems = this.model.group(this.groupKey, this.properties.toJSON());
-  },
-  
-  // Update collection
-  update: function(collection) {
-    this.model = collection;
-    this.compute();
-  },
-  
-  render: function() {
-    $(this.el).html(_.tpl('visualization', {
-      selectable_properties: this.selectableProperties(),
-      selected_properties: this.selectedProperties(),
-      properties: this.availableProperties(),
-      group_keys: this.groupKeys(),
-      group_key: this.groupKey
-    }));
-    
-    // Render visualization
-    if (this.groupedItems) {
-      this.visualization.update({
-        collection: this.groupedItems,
-        properties: this.properties.keys(),
-        id: this.groupKey
-      });
-    }
-  }
-});
-
-
-// Sheet
-// --------------
-
-var Sheet = Backbone.View.extend({
+var Project = Backbone.View.extend({
   events: {
     'click .add-choice': 'addChoice',
     'click .remove-choice': 'removeChoice'
+    // 'click .property.add': 'addProperty',
   },
   
-  initialize: function(options) {
+  el: '#project_wrapper',
+  
+  loadedProjects: {},
+  
+  // initialize: function(options) {
+  //   this.app = options.app;
+  //   _.bindAll(this, "render");
+  // },
+  
+  addProperty: function() {
+    console.log('oh no');
+    return false;
+  },
+  
+  initSheet: function() {
     var that = this;
-    this.collection = options.collection;
-    this.previousCollection = options.collection;
-    this.filteredCollection = options.collection;
+    
+    // Stub HTML for subviews
+    $(this.el).html('<div id="visualization"></div>');
+    
+    console.log('whoo');
+    console.log($(this.el).html());
     
     // Init visualization view
-    this.visualization = new Visualization({el: '#visualization', model: this.filteredCollection});
+    this.visualization = new Visualization({model: this.filteredCollection});
     
     // Init filters
     this.filters = new Data.Hash();
@@ -143,6 +49,79 @@ var Sheet = Backbone.View.extend({
     this.updateFacets();
   },
   
+  loadSheet: function(sheet) {
+    var that = this;
+    
+    $.ajax({
+      type: "GET",
+      url: "/fetch",
+      dataType: "json",
+      success: function(res) {
+        that.collection = new Data.Collection(res);
+        that.previousCollection = that.collection;
+        that.filteredCollection = that.collection;
+        that.initSheet()
+
+        that.activeSheet = sheet;
+        that.render();
+      },
+      error: function(err) {
+        $('#document_wrapper').html('Document loading failed');
+      }
+    });
+  },
+  
+  load: function(username, projectname, mode) {
+    var that = this;
+    that.mode = mode || (username === app.username ? 'edit' : 'show');
+    $('#tabs').show();
+    
+    function init(id) {
+      that.model = graph.get(id);
+
+      if (that.model) {
+        that.loadSheet(that.model.get('sheets').first());
+        
+        // that.trigger('changed');
+        that.loadedProjects[username+"/"+projectname] = id;
+        
+        // Update browser graph reference
+        app.browser.graph.set('objects', id, that.model);
+        app.toggleView('project');
+        that.render();
+      } else {
+        $('#document_wrapper').html('Document loading failed');
+      }
+    }
+    
+    var id = that.loadedProjects[username+"/"+projectname];
+    $('#project_tab').show();
+    
+    // Already loaded - no need to fetch it
+    if (id) {
+      // TODO: check if there are changes from a realtime session
+      init(id);
+    } else {
+      $('#document_tab').html('&nbsp;&nbsp;&nbsp;Loading...');
+      $.ajax({
+        type: "GET",
+        url: "/projects/"+username+"/"+projectname,
+        dataType: "json",
+        success: function(res) {
+          if (res.status === 'error') {
+            $('#document_wrapper').html('Document loading failed');
+          } else {
+            graph.merge(res.graph);
+            init(res.id);
+          }
+        },
+        error: function(err) {
+          $('#document_wrapper').html('Document loading failed');
+        }
+      });
+    }
+  },
+  
   addChoice: function(e) {
       var property = $(e.currentTarget).attr('property'),
           operator = $(e.currentTarget).attr('operator'),
@@ -151,6 +130,7 @@ var Sheet = Backbone.View.extend({
     this.addValue(property, value);
     this.updateFacets();
     this.render();
+    return false;
   },
   
   removeChoice: function(e) {
@@ -161,6 +141,7 @@ var Sheet = Backbone.View.extend({
     this.removeValue(property, value);
     this.updateFacets();
     this.render();
+    return false;
   },
   
   // Extract query from filters
@@ -295,43 +276,18 @@ var Sheet = Backbone.View.extend({
   },
   
   render: function() {
-    
-    this.$('#browser').html(_.tpl('browser', {
-      facets: this.facets,
-      collection: this.collection,
-      filtered_collection: this.filteredCollection
-    }));
-    
-    // Render visualization
-    this.visualization.render();
+    // If sheet loaded
+    if (this.activeSheet) {
+      $(this.el).html(_.tpl('project', {
+        facets: this.facets,
+        collection: this.collection,
+        filtered_collection: this.filteredCollection
+      }));
+      
+      this.visualization.render();
+    } else {
+      $(this.el).html('Loading sheet with data');      
+    }
+    return this;
   }
-});
-
-
-// Application
-// --------------
-
-
-var Application = Backbone.View.extend({
-  
-  initialize: function() {
-    // Initialize DataBrowser
-    this.sheet = new Sheet({model: this.model, collection: this.model, el: '#sheet'});
-  },
-
-  render: function() {
-    this.sheet.render();
-  }
-});
-
-var app;
-
-$(function() {
-
-  // Init Application
-  // --------------
-  
-  var items = new Data.Collection(items_fixture);
-  app = new Application({el: '#container', model: items});
-  app.render();
 });
