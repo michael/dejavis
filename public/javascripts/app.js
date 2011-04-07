@@ -14,57 +14,41 @@ var Application = Backbone.View.extend({
   events: {
     'submit #login-form': 'login',
     'click a.load-project': 'loadProject',
+    'click a.logout': 'logout'
   },
   
   initialize: function() {
     var that = this;
     
-    // this.sheet = new Sheet({model: this.model, collection: this.model, el: '#sheet'});
-    
     // Initialize Project Browser
     this.browser = new Browser({app: this });
     
     // Initialize project
-    // this.document = new Document({el: '#document_wrapper', app: this});
     this.project = new Project({app: this});
-    
-    console.log('====');
-    
-    console.log(this.project.el);
-    
     this.header = new Header({el: '#header', app: this});
     
+    this.bind('authenticated', function() {
+      that.authenticated = true;
+      // Re-render browser
+      // $('.new-project').show();
+      that.render();
+    });
+    
+    this.render();
+  },
+  
+  autoAuthenticate: function() {
     // Cookie-based auto-authentication
     if (session.username) {
       graph.merge(session.seed);
       this.authenticated = true;
       this.username = session.username;
-      this.trigger('authenticated');
-      $('#tabs').show();
-      // $('.new-document').show();
+      
+      $('.new-project').show();
     } else {
       this.authenticated = false;
     }
-    
-    this.bind('authenticated', function() {
-      that.authenticated = true;
-      
-      // Re-render browser
-      $('#tabs').show();
-      // $('.new-document').show();
-      that.render();
-      
-      // that.project.close();
-      // that.browser.load(that.query());
-      
-      // that.browser.bind('loaded', function() {
-      //   that.toggleView('browser');
-      // });
-      
-      // controller.saveLocation('#'+that.username);
-    });
-    
-    that.render();
+    this.render();
   },
   
   loadProject: function(e) {    
@@ -94,16 +78,17 @@ var Application = Backbone.View.extend({
       success: function(res) {
         that.username = null;
         that.authenticated = false;
-        that.document.closeDocument();
+        that.project.close();
         that.browser.loaded = false;
         that.browser.render();
         that.render();
-        $('#document_tab').hide();
+        $('#project_tab').hide();
+        $('#tabs').hide();
         
         app.toggleStartpage();
         
         controller.saveLocation('');
-        $('.new-document').hide();
+        $('.new-project').hide();
       }
     });
     return false;
@@ -134,25 +119,6 @@ var Application = Backbone.View.extend({
     return false;
   },
   
-  load: function(url, callback) {
-    $.ajax({
-      type: "GET",
-      url: "/fetch",
-      // data: {
-      //   qry: JSON.stringify(qry),
-      //   options: JSON.stringify(options)
-      // },
-      dataType: "json",
-      success: function(collection) {
-        console.log(collection);
-        callback(null, collection);
-      },
-      error: function(err) {
-       callback(err);
-      }
-    });
-  },
-  
   authenticate: function() {
     var that = this;
     
@@ -171,6 +137,16 @@ var Application = Backbone.View.extend({
           graph.merge(res.seed);
           that.username = res.username;
           that.trigger('authenticated');
+          
+          // Init with foo
+          that.project.close();
+          that.browser.load({"type": "user", "value": that.username});
+
+          that.browser.bind('loaded', function() {
+            that.toggleView('browser');
+            $('#tabs').show();
+          });
+          controller.saveLocation('#'+that.username);
         }
       },
       error: function(err) {
@@ -183,14 +159,11 @@ var Application = Backbone.View.extend({
   render: function() {
     // Should be rendered just once
     var that = this;
-    // this.document.render();
     this.browser.render();
     this.header.render();
-    // this.sheet.render();
     return this;
   }
 });
-
 
 // Data.setAdapter('AjaxAdapter');
 
@@ -212,14 +185,8 @@ var remote,                              // Remote handle for server-side method
       return false;
     }
     
-    // No idea why we have to wait here
-    setTimeout(function() {
-      $('#container').show();
-    }, 1);
-    
     if (!browserSupported()) {
       $('#container').html(_.tpl('browser_not_supported'));
-      $('#container').show();
       return;
     }
     
@@ -228,10 +195,12 @@ var remote,                              // Remote handle for server-side method
 
     var items = new Data.Collection(items_fixture);
     app = new Application({el: '#container', model: items, session: session});
+    
     app.render();
         
     // Initialize controller
     controller = new ApplicationController({app: this});
+    app.autoAuthenticate();
     
     // Start responding to routes
     Backbone.history.start();

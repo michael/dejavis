@@ -16,20 +16,34 @@ function encryptPassword(password) {
   hash.update(password);
   return hash.digest('hex');
 }
-    
-function fetchResource(url, callback) {
+
+function fetchResource(url, accessToken, callback) {
   fragments = require('url').parse(url);
   options = { host: fragments.host, path: fragments.pathname };
-  if (fragments.search) options.path += fragments.search;
+  if (fragments.search) {
+    options.path += fragments.search;
+    if (accessToken) options.path += "&access_token="+accessToken;
+  } else if (accessToken) {
+    options.path += "?access_token="+accessToken;
+  }
+  
+  console.log('FETCHING:');
+  console.log(options);
+  // console.log(options.path);
   
   // TODO: rather stream through
   http.get(options, function(cres) {
+    
+    console.log(cres.statusCode);
+    
+    if (cres.statusCode !== 200) return callback('error', '');
+    
     cres.setEncoding('utf8');
     json = "";
     cres.on('data', function(d) {
       json += d;
-    });    
-
+    });
+    
     cres.on('end', function() {
       callback(null, json);
     });
@@ -39,6 +53,9 @@ function fetchResource(url, callback) {
   });
 }
 
+// fetchResource('http://beta.macs.upject.at/data_leaks/hardware_report', 'a441b15fe9a3cf56661190a0b93b9dec7d04127288cc87250967cf3b52894d11', function(err, content) { /*console.log(content);*/ });
+// 
+// return;
 
 // App Config
 global.config = JSON.parse(fs.readFileSync(__dirname+ '/config.json', 'utf-8'));
@@ -85,13 +102,14 @@ function getProject(username, projectname, callback) {
               if (err) callback(err);
               result[node._id] = node;
               
+              callback(null);
               // Fetch dataset for each sheet
-              fetchNode(node.dataset, function(err, n) {
-                if (err) { console.log('FATAL: BROKEN REFERENCE!'); console.log(err); return callback(); }
-                result[n._id] = n;
-                delete result[n._id].password;
-                callback(null);
-              });
+              // fetchNode(node.dataset, function(err, n) {
+              //   if (err) { console.log('FATAL: BROKEN REFERENCE!'); console.log(err); return callback(); }
+              //   result[n._id] = n;
+              //   delete result[n._id].password;
+              //   callback(null);
+              // });
             });
           }, function(err) {
             callback(null);
@@ -116,6 +134,60 @@ function getProject(username, projectname, callback) {
         callback('not found');
       }
     }
+  });
+}
+
+function getPermission(datasourceId, userId, callback) {
+  console.log(datasourceId+':/user/'+userId);
+  db.view(db.uri.pathname+'/_design/dejavis/_view/datasource_permissions', {key: datasourceId+':/user/'+userId}, function(err, res) {
+    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
+    // Normally we'd just use the err object in an error case
+    if (res.error || !res.rows) {
+      callback(res.error, false);
+    } else {
+      if (res.rows.length > 0) {
+        console.log('------------');
+        console.log(res.rows[0]);
+        callback(null, res.rows[0].value);
+      } else {
+        callback('permission_denied', false);
+      }
+    }
+  });
+}
+
+
+// Get sheet with datasource (only if privileged)
+function fetchData(sheetId, req, callback) {
+  
+  fetchNode(sheetId, function(err, sheet) {
+    // console.log('NICE TRY');
+    // console.log(err);
+    // console.log(node);
+    
+    // console.log('authenticated user');
+    // console.log(req.session.username);
+    // console.log('datasource');
+    // console.log(sheet.datasource);
+    
+    getPermission(sheet.datasource, req.session.username, function(err, permission) {
+      if (err) return callback('permission_denied', '{"status": "permission_denied"}');
+      
+      fetchNode(sheet.datasource, function(err, datasource) {
+        // console.log('datasource=======');
+        // console.log(datasource);
+        // console.log('permission=======');
+        // console.log(permission);
+        
+        fetchResource(datasource.url, permission.access_token, function(err, content) {
+          if (!err) {
+            callback(null, content);
+          } else {
+            callback(err);
+          }
+        });
+      });
+    });
   });
 }
 
@@ -197,13 +269,21 @@ app.get('/', function(req, res) {
 });
 
 // Proxy for Collections
-app.get('/fetch', function(req, res) {
-  fetchResource("http://quasipartikel.at/dejavis/fixtures/hardware_report.json", function(err, content) {
-    if (!err) {
-      res.send(content);
-    } else {
-      res.send(err);
-    }
+// app.get('/fetch', function(req, res) {
+//   fetchResource("http://quasipartikel.at/dejavis/fixtures/hardware_report.json", function(err, content) {
+//     if (!err) {
+//       res.send(content);
+//     } else {
+//       res.send(err);
+//     }
+//   });
+// });
+
+// Return data associated with a sheet, security aware
+app.get('/data', function(req, res) {
+  // console.log(req.query.sheet);
+  fetchData(req.query.sheet, req, function(err, data) {
+    res.send(data);
   });
 });
 
@@ -213,7 +293,7 @@ app.get('/fetch', function(req, res) {
 app.get('/projects/search/:type/:search_str', function(req, res) {
   if (req.params.type == 'recent') {
     res.send('not yet supported');
-    // recentDocuments(req.params.search_str, req.session.username, function(err, graph, count) {
+    // recentProjects(req.params.search_str, req.session.username, function(err, graph, count) {
     //   res.send(JSON.stringify({graph: graph, count: count}));
     // });
   } else {
@@ -245,7 +325,6 @@ app.post('/login', function(req, res) {
         var seed = {};
         seed[user._id] = user.toJSON();
         delete seed[user._id].password;
-        
         res.send({
           status: "ok",
           username: username,

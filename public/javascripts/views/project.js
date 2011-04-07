@@ -4,7 +4,9 @@
 var Project = Backbone.View.extend({
   events: {
     'click .add-choice': 'addChoice',
-    'click .remove-choice': 'removeChoice'
+    'click .remove-choice': 'removeChoice',
+    'click .new-sheet': 'newSheet',
+    'click .sheet': 'switchSheet'
     // 'click .property.add': 'addProperty',
   },
   
@@ -12,10 +14,19 @@ var Project = Backbone.View.extend({
   
   loadedProjects: {},
   
-  // initialize: function(options) {
-  //   this.app = options.app;
-  //   _.bindAll(this, "render");
-  // },
+  initialize: function(options) {
+    this.app = options.app;
+    _.bindAll(this, "render");
+  },
+  
+  switchSheet: function() {
+    return false;
+  },
+  
+  newSheet: function() {
+    alert("We're working on it.");
+    return false;
+  },
   
   addProperty: function() {
     console.log('oh no');
@@ -24,12 +35,6 @@ var Project = Backbone.View.extend({
   
   initSheet: function() {
     var that = this;
-    
-    // Stub HTML for subviews
-    $(this.el).html('<div id="visualization"></div>');
-    
-    console.log('whoo');
-    console.log($(this.el).html());
     
     // Init visualization view
     this.visualization = new Visualization({model: this.filteredCollection});
@@ -54,7 +59,10 @@ var Project = Backbone.View.extend({
     
     $.ajax({
       type: "GET",
-      url: "/fetch",
+      url: "/data",
+      data: {
+        sheet: sheet._id
+      },
       dataType: "json",
       success: function(res) {
         that.collection = new Data.Collection(res);
@@ -120,6 +128,11 @@ var Project = Backbone.View.extend({
         }
       });
     }
+  },
+  
+  // Close Project
+  close: function() {
+    
   },
   
   addChoice: function(e) {
@@ -279,6 +292,7 @@ var Project = Backbone.View.extend({
     // If sheet loaded
     if (this.activeSheet) {
       $(this.el).html(_.tpl('project', {
+        project: this.model,
         facets: this.facets,
         collection: this.collection,
         filtered_collection: this.filteredCollection
