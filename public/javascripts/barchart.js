@@ -159,8 +159,10 @@ var Barchart = function(el, options) {
         .attr("class", "item-label")
         .attr("transform", "translate("+ ~~x(0) +", 40)")
         .attr("fill", "#444")
-        .text(function(d, i) { return d.get(id[0]); });
-
+        .text(function(d, i) {
+          var str = d.get(id[0]);
+          return str.length ? str.values().join(", ") : str;
+        });
   }
   
   function render() {
