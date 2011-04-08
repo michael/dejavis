@@ -27,7 +27,7 @@ function fetchResource(url, accessToken, clientIP, callback) {
     options.path += "?access_token="+accessToken+"&client_ip="+clientIP;
   }
   
-  console.log('requesting:');
+  console.log('Requesting datasource...');
   console.log(options);
   
   // TODO: rather stream through
@@ -135,8 +135,8 @@ function getPermission(datasourceId, userId, callback) {
 
 // Get sheet with datasource (only if privileged)
 function fetchData(sheetId, req, callback) {
-  
   fetchNode(sheetId, function(err, sheet) {
+    if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
     getPermission(sheet.datasource, req.session.username, function(err, permission) {
       if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
       fetchNode(sheet.datasource, function(err, datasource) {
@@ -144,7 +144,7 @@ function fetchData(sheetId, req, callback) {
           if (!err) {
             callback(null, content);
           } else {
-            callback(err);
+            callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
           }
         });
       });
