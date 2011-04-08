@@ -134,20 +134,41 @@ function getPermission(datasourceId, userId, callback) {
 
 
 // Get sheet with datasource (only if privileged)
+// And yes, I'm aware its a messy sketch
 function fetchData(sheetId, req, callback) {
+  var clientIP = req.headers['x-forwarded-for'] ? _.last(req.headers['x-forwarded-for'].split(',')).trim()
+                                                : req.connection.remoteAddress;
+
   fetchNode(sheetId, function(err, sheet) {
     if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
-    getPermission(sheet.datasource, req.session.username, function(err, permission) {
+    fetchNode(sheet.project, function(err, project) {
       if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
-      fetchNode(sheet.datasource, function(err, datasource) {
-        fetchResource(datasource.url, permission.access_token, req.connection.remoteAddress, function(err, content) {
-          if (!err) {
-            callback(null, content);
-          } else {
-            callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
-          }
+      
+      if (project.published_on) {
+        fetchNode(sheet.datasource, function(err, datasource) {
+          fetchResource(datasource.url, "", clientIP, function(err, content) {
+            if (!err) {
+              callback(null, content);
+            } else {
+              callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
+            }
+          });
         });
-      });
+        
+      } else {
+        getPermission(sheet.datasource, req.session.username, function(err, permission) {
+          if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
+          fetchNode(sheet.datasource, function(err, datasource) {
+            fetchResource(datasource.url, permission.access_token, clientIP, function(err, content) {
+              if (!err) {
+                callback(null, content);
+              } else {
+                callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
+              }
+            });
+          });
+        });        
+      }
     });
   });
 }
