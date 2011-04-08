@@ -64,9 +64,21 @@ var Barchart = function(el, options) {
     // Items
     // --------------
     
+    // Sort items by group key
+    var ASC_BY_KEY = function(item1, item2) {
+      var v1 = item1.key,
+          v2 = item2.key;
+      return v1 === v2 ? 0 : (v1 < v2 ? -1 : 1);
+    };
+    
+    var dataitems = new Data.Hash();
+    c.items().sort(ASC_BY_KEY).each(function(item, key, index) {
+      dataitems.set(key, item);
+    });
+    
     var items = d3.select('g.plotarea')
         .selectAll('g.item')
-        .data(c.items())
+        .data(dataitems)
         .enter().append("svg:g")
           .attr("class", "item")
           .attr("transform", function(d, i) { return "translate(0, "+(i*itemOffset-0.5)+")"; })
@@ -161,7 +173,7 @@ var Barchart = function(el, options) {
         .attr("fill", "#444")
         .text(function(d, i) {
           var str = d.get(id[0]);
-          return str.length ? str.values().join(", ") : str;
+          return str.values ? str.values().join(", ") : str;
         });
   }
   
