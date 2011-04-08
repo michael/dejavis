@@ -64,7 +64,7 @@ var Visualization = Backbone.View.extend({
   // Extract group keys
   groupKeys: function() {
     return this.model.properties().select(function(p) {
-      return p.expectedTypes[0] === 'string' && p.unique
+      return p.expectedTypes[0] === 'string'
     });
   },
   
