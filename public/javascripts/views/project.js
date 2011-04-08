@@ -65,16 +65,19 @@ var Project = Backbone.View.extend({
       },
       dataType: "json",
       success: function(res) {
-        that.collection = new Data.Collection(res);
-        that.previousCollection = that.collection;
-        that.filteredCollection = that.collection;
-        that.initSheet()
-
-        that.activeSheet = sheet;
-        that.render();
+        if (!res.status) {
+          that.collection = new Data.Collection(res);
+          that.previousCollection = that.collection;
+          that.filteredCollection = that.collection;
+          that.initSheet()
+          that.activeSheet = sheet;
+          that.render();
+        } else {
+          $('#project_wrapper').html("The sheet couldn't be loaded. You may not be permitted to access the datasource.");
+        }
       },
       error: function(err) {
-        $('#document_wrapper').html('Document loading failed');
+        $('#project_wrapper').html("The sheet couldn't be loaded.");
       }
     });
   },
@@ -222,7 +225,6 @@ var Project = Backbone.View.extend({
           v2 = item2.value.referencedObjects.length;
       return v1 === v2 ? 0 : (v1 > v2 ? -1 : 1);
     };
-    
     return values.sort(DESC_BY_OBJECT_COUNT);
     
   },
