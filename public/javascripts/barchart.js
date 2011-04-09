@@ -10,6 +10,7 @@ var Barchart = function(el, options) {
   var c;
   var id = options.id;
   var properties;
+  var propertyColors;
   var data;
   var x; // x-Scale
   var y; // y-Scale
@@ -20,8 +21,6 @@ var Barchart = function(el, options) {
       barHeight = 20,
       barOffset = 22,
       itemOffset;
-      
-  var colors = d3.scale.ordinal().range(['#8DB5C8', '#90963C', '#B16649', '#A2C355', '#93BAA1', '#808E89', '#86A2A9']);
   
   function prepareData() {
     maxx = d3.max(c.items(), function(d) {
@@ -82,7 +81,8 @@ var Barchart = function(el, options) {
         .enter().append("svg:g")
           .attr("class", "item")
           .attr("transform", function(d, i) { return "translate(0, "+(i*itemOffset-0.5)+")"; })
-        
+    
+    
     // Rulers
     var rules = chart.selectAll("g.rule")
       .data(x.ticks(5))
@@ -110,7 +110,6 @@ var Barchart = function(el, options) {
     //     .attr("x2", 400)
     //     .attr("stroke", "#ccc")
     //     .attr('transform', function(d) { return 'translate('+ (~~x(d)+0.5) +', 0)' })
-
 
     // Zero line
     // chart.append('svg:line')
@@ -149,11 +148,11 @@ var Barchart = function(el, options) {
     
     // Bars (Rectangle)
     // --------------
-      
+    
     bars.append('svg:rect')
       .attr("height", barHeight)
       .attr("width", function(d, i) { return Math.max(~~_.dist(x(d), x(0)), 2); })
-      .attr("fill", function(d, i) { return colors(i); })
+      .attr("fill", function(d, i) { return propertyColors(properties[i]); })
       .attr("opacity", 0.8)
       
     bars.append('svg:text')
@@ -184,6 +183,7 @@ var Barchart = function(el, options) {
   function update(options) {
     c = options.collection;
     properties = options.properties;
+    propertyColors = options.propertyColors;
     id = options.id;
     prepareData();
     render();

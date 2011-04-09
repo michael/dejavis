@@ -1857,15 +1857,13 @@ div.intro {
 }
 
 
-#selected_properties a:nth-child(1) div.color { background: #8DB5C8; }
-#selected_properties a:nth-child(2) div.color { background: #90963C; }
-#selected_properties a:nth-child(3) div.color { background: #B16649; }
-#selected_properties a:nth-child(4) div.color { background: #A2C355; }
-#selected_properties a:nth-child(5) div.color { background: #93BAA1; }
-#selected_properties a:nth-child(6) div.color { background: #808E89; }
-#selected_properties a:nth-child(7) div.color { background: #86A2A9; }
+#properties .property.add .color {
+  opacity: 0.3;
+}
 
-
+#properties .property.add {
+  color: #aaa;
+}
  
 .body {
   width: 960px;

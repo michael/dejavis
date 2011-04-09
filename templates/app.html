@@ -147,20 +147,13 @@
         <div id="properties">
           <h3>Properties</h3>
           <div id="selected_properties">
-            <% selected_properties.each(function(p, key, i) { %>
-              <a href="#"><div class="property remove" index="<%= i %>" property="<%= p.key %>">
-                <div class="color"></div>
+            <% properties.each(function(p, key, i) { %>
+              <a href="#"><div class="property<%= selected_properties.get(p.key) ? ' remove selected' : ' add' %>" index="<%= i %>" property="<%= p.key %>">
+                <div class="color" style="background: <%= propertyColors(p.key) %>"></div>
                 <span><%= p.name %></span>
               </div></a>
             <% }); %>
           </div>
-        
-          <% selectable_properties.each(function(p) { %>
-            <a href="#"><div class="property add" property="<%= p.key %>">
-              <div class="color"></div>
-              <span><%= p.name %></span>
-            </div></a>
-          <% }); %>
         </div>
       </div>
       

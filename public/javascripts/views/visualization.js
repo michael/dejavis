@@ -1,6 +1,11 @@
 // Visualization
 // --------------
 
+// Map property keys to colors
+_.propertyColors = function(properties) {
+  return d3.scale.ordinal().domain(properties).range(['#8DB5C8', '#90963C', '#B16649', '#A2C355', '#93BAA1', '#808E89', '#86A2A9']);
+};
+
 var Visualization = Backbone.View.extend({
   events: {
     'change #group_key': 'updateGroupKey',
@@ -15,6 +20,9 @@ var Visualization = Backbone.View.extend({
     
     this.groupKey = [this.groupKeys()[0].key];
     this.compute();
+    
+    // Color scale for properties
+    this.propertyColors = _.propertyColors(this.selectableProperties().keys());
     
     // Initialize visualizatoin instance
     this.visualization = new Barchart('#canvas', {});
@@ -87,6 +95,7 @@ var Visualization = Backbone.View.extend({
       selectable_properties: this.selectableProperties(),
       selected_properties: this.selectedProperties(),
       properties: this.availableProperties(),
+      propertyColors: this.propertyColors,
       group_keys: this.groupKeys(),
       group_key: this.groupKey
     }));
@@ -96,6 +105,7 @@ var Visualization = Backbone.View.extend({
       this.visualization.update({
         collection: this.groupedItems,
         properties: this.properties.keys(),
+        propertyColors: this.propertyColors,
         id: this.groupKey
       });
     } else {
