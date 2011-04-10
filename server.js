@@ -284,8 +284,6 @@ app.get('/data', function(req, res) {
   });
 });
 
-
-
 // Quick search interface (returns found users and a documentset)
 app.get('/search/:search_str', function(req, res) {
   findProjects(req.params.search_str, 'keyword', req.session.username, function(err, graph, count) {
@@ -345,6 +343,51 @@ app.post('/login', function(req, res) {
     } else {
       res.send({status: "error"});
     }
+  });
+});
+
+app.post('/updateuser', function(req, res) {
+  var username = req.body.username;
+  
+  var graph = new Data.Graph(seed);
+  graph.fetch({type: '/type/user'}, function(err) {
+    var user = graph.get('/user/'+username);
+    if (!user) return res.send({"status": "error"});
+    
+    user.set({
+      name: req.body.name,
+      email: req.body.email,
+      location: req.body.location,
+      website: req.body.website,
+      company: req.body.company,
+      location: req.body.location
+    });
+    
+    // Change password
+    if (req.body.password) {
+      user.set({
+        password: encryptPassword(req.body.password)
+      });
+    }
+
+    if (user.validate()) {
+      graph.sync(function(err) {
+        if (!err) {
+          var seed = {};
+          seed[user._id] = user.toJSON();
+          delete seed[user._id].password;
+          res.send({
+            status: "ok",
+            username: username,
+            seed: seed
+          });
+          req.session.username = username;
+          req.session.seed = seed;
+        } else {
+          return res.send({"status": "error"});
+        }
+      });
+    } else return res.send({"status": "error", "message": "Not valid", "errors": user.errors});
   });
 });
 

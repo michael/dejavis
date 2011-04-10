@@ -15,7 +15,13 @@ var Application = Backbone.View.extend({
     'submit #login-form': 'login',
     'click a.load-project': 'loadProject',
     'click a.logout': 'logout',
-    'click .tab': 'switchTab'
+    'click .tab': 'switchTab',
+    'click a.toggle-user-settings': 'toggleUserSettings'
+  },
+  
+  query: function() {
+    return this.authenticated ? { "type": "user", "value": this.username }
+                              : { "type": "user", "value": "demo" }
   },
   
   initialize: function() {
@@ -97,7 +103,7 @@ var Application = Backbone.View.extend({
         that.browser.render();
         that.render();
         $('#project_tab').hide();
-        $('#tabs').hide();
+        // $('#tabs').hide();
         
         app.toggleStartpage();
         
@@ -127,9 +133,16 @@ var Application = Backbone.View.extend({
   },
   
   toggleStartpage: function() {
-    // app.browser.browserTab.render();
+    app.browser.browserTab.render();
     $('#content_wrapper').html(_.tpl('startpage'));
     app.toggleView('content');
+    return false;
+  },
+  
+  toggleUserSettings: function() {
+    this.content = new UserSettings({el: '#content_wrapper'});
+    this.content.render();
+    this.toggleView('content');    
     return false;
   },
   
