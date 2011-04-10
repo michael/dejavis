@@ -194,7 +194,7 @@ a.button:active {
   overflow: visible;
   height: 60px;
   margin: 0 270px 10px 270px;
-  display: none;
+  /* display: none;*/
 }
 
 #tabs a { border: none; }
@@ -236,7 +236,7 @@ a.button:active {
   background: rgba(88,108,114, 1.0);
 }
 
-#document_tab.active, #document_tab:hover {
+#project_tab.active, #project_tab:hover {
   background: rgba(99,88,73, 1.0);
 }
 
@@ -257,7 +257,7 @@ a.button:active {
   border-top: 7px solid #586C72;
 }
 
-#document_tab .cursor {
+#project_tab .cursor {
   border-top: 7px solid #635849;
 }
 
@@ -333,12 +333,12 @@ a.button:active {
 
 /* #tabs .tab:not(.active) input { cursor: pointer; } */
 
-#document_tab { background: rgba(99,88,73, 0.7); }
-#document_tab .user-name {padding-left: 10px; max-width: 210px; overflow: hidden; white-space: nowrap; }
-#document_tab > div {height: 26px; float: left; line-height: 26px;}
+#project_tab { background: rgba(99,88,73, 0.7); }
+#project_tab .user-name {padding-left: 10px; max-width: 210px; overflow: hidden; white-space: nowrap; }
+#project_tab > div {height: 26px; float: left; line-height: 26px;}
 
-#document_tab input { float: left; border: 1px solid transparent; width: 100px; margin-left: 5px; height: 26px; background: rgba(0,0,0, 0); color: rgba(255,255,255, 0.7); }
-#document_tab input:focus {border-bottom: 1px dotted #fff; color: rgba(255,255,255, 1); }
+#project_tab input { float: left; border: 1px solid transparent; width: 100px; margin-left: 5px; height: 26px; background: rgba(0,0,0, 0); color: rgba(255,255,255, 0.7); }
+#project_tab input:focus {border-bottom: 1px dotted #fff; color: rgba(255,255,255, 1); }
 
 
 /* Browser not supported view

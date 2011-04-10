@@ -14,7 +14,8 @@ var Application = Backbone.View.extend({
   events: {
     'submit #login-form': 'login',
     'click a.load-project': 'loadProject',
-    'click a.logout': 'logout'
+    'click a.logout': 'logout',
+    'click .tab': 'switchTab'
   },
   
   initialize: function() {
@@ -49,6 +50,19 @@ var Application = Backbone.View.extend({
       this.authenticated = false;
     }
     this.render();
+  },
+  
+  searchProjects: function(searchstr) {
+    app.browser.load({"type": "keyword", "value": encodeURI(searchstr)});
+    $('#browser_wrapper').attr('url', '#search/'+encodeURI(searchstr));
+    
+    app.browser.bind('loaded', function() {
+      app.toggleView('browser');
+    });
+  },
+  
+  switchTab: function(e) {
+    this.toggleView($(e.currentTarget).attr('view'));
   },
   
   loadProject: function(e) {    
@@ -144,7 +158,6 @@ var Application = Backbone.View.extend({
 
           that.browser.bind('loaded', function() {
             that.toggleView('browser');
-            $('#tabs').show();
           });
           controller.saveLocation('#'+that.username);
         }

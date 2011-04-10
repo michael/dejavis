@@ -8,8 +8,8 @@ var Browser = Backbone.View.extend({
   initialize: function(options) {
     var that = this;
     this.app = options.app;
-    // this.browserTab = new BrowserTab({el: '#browser_tab', browser: this});
-    // this.documents = [];
+    this.browserTab = new BrowserTab({el: '#browser_tab', browser: this});
+    this.projects = [];
   },
   
   // Modfies query state (reflected in the BrowserTab)
@@ -18,11 +18,12 @@ var Browser = Backbone.View.extend({
     this.query = query;
     this.graph = new Data.Graph(seed);
     
+    $('#tabs').show();
     $('#browser_tab').show().html('&nbsp;&nbsp;&nbsp;Loading projects...');
-    $('#browser_wrapper').html('');
+    $('#browser_wrapper').html('...');
+    
     $.ajax({
       type: "GET",
-      // url: "/documents/search/"+query.type+"/"+encodeURI(query.value),
       url: "/projects/search/"+query.type+"/"+encodeURI(query.value),
       dataType: "json",
       success: function(res) {
@@ -54,14 +55,7 @@ var Browser = Backbone.View.extend({
       }));
       
       // if (this.loaded) this.facets.render();
-      // this.browserTab.render();
     }
-    
-    // var username = this.options.app.username;
-    
-    // Render login-state
-    // $(this.el).html(_.tpl('header', {
-    //   user: graph.get('/user/'+username)
-    // }));
+    this.browserTab.render();
   }
 });

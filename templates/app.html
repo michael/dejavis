@@ -28,8 +28,8 @@
               <input type="password" name="password" class="hint" id="login-password" value="password">
               <input type="submit" value="Login"/>
             </form>
-            <div class="signup hidden">
-              New to Dejavis? <a href="#signup" class="toggle-signup">Create an Account</a>
+            <div class="signup">
+              New to Déjàvis? <a href="#signup" class="toggle-signup">Create an Account</a>
             </div>
           <% } %>
         </div>
@@ -48,6 +48,26 @@
           </div>
         </div>
       </div>
+    </script>
+    
+    <script type="text/x-ejs-template" name="browser_tab">
+      <div class="cursor"><span></span></div>
+      <div class="icon browse"></div>
+      <div class="tab-label">Browser</div>
+      <form id="search_form"><input type="text" id="search" name="search" value="<%= query_descr %>" autocomplete="off"/></form>
+      <div class="count"><%= projects.length > 0 ? projects.length : ''%></div>
+      <br class="clear"/>
+      <div class="results"></div>
+    </script>
+    
+    <script type="text/x-ejs-template" name="project_tab">
+      <div class="cursor"><span></span></div>
+      <div class="icon read"></div>
+      <div class="tab-label">Project</div>
+      <div class="user-name">
+        <%= username %> / <b><%= project_name %></b>
+      </div>
+      <!--<input type="text" id="project_name" name="project_name" value="foo"/>-->
     </script>
     
     <script type="text/x-ejs-template" name="browser">
@@ -116,7 +136,7 @@
           </div>
         <% } else { %>
           <div id="documents">
-            <h2>No Documents ...</h2>
+            <h2>No Projects ...</h2>
           </div>
         <% } %>
       </div>
@@ -271,6 +291,7 @@
     <!-- Views -->
     <script type="text/javascript" src="/javascripts/views/header.js"></script>
     <script type="text/javascript" src="/javascripts/views/project.js"></script>
+    <script type="text/javascript" src="/javascripts/views/browser_tab.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser.js"></script>
     <script type="text/javascript" src="/javascripts/views/visualization.js"></script>
     
@@ -294,10 +315,10 @@
           
         </div>
 
-        <div id="document_tab" class="tab hidden" view="document">
+        <div id="project_tab" class="tab hidden" view="project">
         </div>
 
-        <a href="#" class="action new-document hidden" title="Create a new document">
+        <a href="#" class="action new-project hidden" title="Create a new project">
           <div class="view-action-icon new"></div>
         </a>
       </div>
@@ -308,11 +329,11 @@
           
         </div>
 
-        <!-- The document browser -->
+        <!-- The project browser -->
         <div id="browser_wrapper" class="view hidden">
         </div>
 
-        <!-- The document browser -->
+        <!-- The project view -->
         <div id="project_wrapper" class="view hidden">
           
         </div>

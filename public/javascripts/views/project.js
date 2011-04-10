@@ -7,7 +7,6 @@ var Project = Backbone.View.extend({
     'click .remove-choice': 'removeChoice',
     'click .new-sheet': 'newSheet',
     'click .sheet': 'switchSheet'
-    // 'click .property.add': 'addProperty',
   },
   
   el: '#project_wrapper',
@@ -24,14 +23,10 @@ var Project = Backbone.View.extend({
   },
   
   newSheet: function() {
-    alert("We're working on it.");
+    alert("Not available yet. We're working on it.");
     return false;
   },
   
-  addProperty: function() {
-    console.log('oh no');
-    return false;
-  },
   
   initSheet: function() {
     var that = this;
@@ -101,7 +96,7 @@ var Project = Backbone.View.extend({
         app.toggleView('project');
         that.render();
       } else {
-        $('#document_wrapper').html('Document loading failed');
+        $('#project_wrapper').html('Project loading failed');
       }
     }
     
@@ -113,21 +108,21 @@ var Project = Backbone.View.extend({
       // TODO: check if there are changes from a realtime session
       init(id);
     } else {
-      $('#document_tab').html('&nbsp;&nbsp;&nbsp;Loading...');
+      $('#project_tab').html('&nbsp;&nbsp;&nbsp;Loading...');
       $.ajax({
         type: "GET",
         url: "/projects/"+username+"/"+projectname,
         dataType: "json",
         success: function(res) {
           if (res.status === 'error') {
-            $('#document_wrapper').html('Document loading failed');
+            $('#project_wrapper').html('Document loading failed');
           } else {
             graph.merge(res.graph);
             init(res.id);
           }
         },
         error: function(err) {
-          $('#document_wrapper').html('Document loading failed');
+          $('#project_wrapper').html('Project loading failed');
         }
       });
     }
@@ -136,6 +131,16 @@ var Project = Backbone.View.extend({
   // Close Project
   close: function() {
     
+  },
+  
+  renderTab: function() {
+    if (this.model) {
+      $('#project_tab').show();
+      $('#project_tab').html(_.tpl('project_tab', {
+        username: this.model.get('creator')._id.split('/')[2],
+        project_name: this.model.get('name')
+      }));
+    }
   },
   
   addChoice: function(e) {
@@ -300,9 +305,10 @@ var Project = Backbone.View.extend({
         filtered_collection: this.filteredCollection
       }));
       
+      this.renderTab();
       this.visualization.render();
     } else {
-      $(this.el).html('Loading sheet with data');      
+      $('#project_tab').html('&nbsp;&nbsp;&nbsp;Loading data...');
     }
     return this;
   }

@@ -41,7 +41,7 @@ var ApplicationController = Backbone.Controller.extend({
   },
   
   searchProjects: function(searchstr) {
-    // app.searchDocs(searchstr);
-    // return false;
+    app.searchProjects(searchstr);
+    return false;
   }
 });
