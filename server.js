@@ -173,6 +173,33 @@ function fetchData(sheetId, req, callback) {
   });
 }
 
+function findUsers(searchstr, callback) {
+  db.view(db.uri.pathname+'/_design/dejavis/_view/users', function(err, res) {
+    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
+    // Normally we'd just use the err object in an error case
+  
+    if (res.error || !res.rows) {
+      callback(res.error);
+    } else {
+      var result = {};
+      var count = 0;
+      
+      _.each(res.rows, function(row) {
+        if (row.key && row.key.match(new RegExp("("+searchstr+")", "i"))) {
+          // Add to result set
+          if (count < 200) { // 200 Users maximum
+            count += 1;
+            result[row.value._id] = row.value;
+            delete result[row.value._id].password
+            delete result[row.value._id].email
+          }
+        }
+      });
+      callback(null, result);
+    }
+  });
+}
+
 // We are aware that this is not a performant solution.
 // But search functionality needed to be there, quickly.
 // We'll replace it with a speedy fulltext search asap.
@@ -257,6 +284,17 @@ app.get('/data', function(req, res) {
   });
 });
 
+
+
+// Quick search interface (returns found users and a documentset)
+app.get('/search/:search_str', function(req, res) {
+  findProjects(req.params.search_str, 'keyword', req.session.username, function(err, graph, count) {
+    // res.send(JSON.stringify({project_count: count, users: []}));
+    findUsers(req.params.search_str, function(err, users) {
+      res.send(JSON.stringify({document_count: count, users: users}));
+    });
+  });
+});
 
 // Find documents by search string (full text search in future)
 // Or find by user
