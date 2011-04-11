@@ -39,11 +39,9 @@ function fetchResource(url, accessToken, clientIP, callback) {
     cres.on('data', function(d) {
       json += d;
     });
-    
     cres.on('end', function() {
       callback(null, json);
     });
-    
   }).on('error', function(e) {
     callback(e);
   });
@@ -132,9 +130,8 @@ function getPermission(datasourceId, userId, callback) {
   });
 }
 
-
 // Get sheet with datasource (only if privileged)
-// And yes, I'm aware its a messy sketch
+// And yes, I'm aware it's a messy sketch yet
 function fetchData(sheetId, req, callback) {
   var clientIP = req.headers['x-forwarded-for'] ? _.last(req.headers['x-forwarded-for'].split(',')).trim()
                                                 : req.connection.remoteAddress;
@@ -144,31 +141,27 @@ function fetchData(sheetId, req, callback) {
     fetchNode(sheet.project, function(err, project) {
       if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
       
-      if (project.published_on) {
-        fetchNode(sheet.datasource, function(err, datasource) {
-          fetchResource(datasource.url, "", clientIP, function(err, content) {
+      fetchNode(sheet.datasource, function(err, datasource) {
+        function getResource(url, accessToken, clientIP) {
+          fetchResource(url, accessToken, clientIP, function(err, content) {
             if (!err) {
               callback(null, content);
             } else {
               callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
             }
           });
-        });
+        }
         
-      } else {
-        getPermission(sheet.datasource, req.session.username, function(err, permission) {
-          if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
-          fetchNode(sheet.datasource, function(err, datasource) {
-            fetchResource(datasource.url, permission.access_token, clientIP, function(err, content) {
-              if (!err) {
-                callback(null, content);
-              } else {
-                callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
-              }
-            });
+        if (datasource.public) {
+          getResource(datasource.url, "", clientIP);
+        } else {
+          // Private datasources require a permission entry
+          getPermission(sheet.datasource, req.session.username, function(err, permission) {
+            if (err) return callback('permission_denied', '{"status": "error", "message": "permission_denied"}');
+            getResource(datasource.url, permission.access_token, clientIP);
           });
-        });        
-      }
+        }
+      });
     });
   });
 }
@@ -254,6 +247,40 @@ function findProjects(searchstr, type, username, callback) {
 }
 
 
+function findDatasources(req, callback) {
+  var result = {};
+  var keys = [];
+  
+  graph.fetch({type: '/type/datasource', public: true}, function(err, nodes) {
+    if (err) return res.send({status: "error", message: "An error occured"});
+    result = nodes.toJSON();
+    keys = nodes.keys();
+    
+    // console.log("/user/"+req.session.username);
+    db.view(db.uri.pathname+'/_design/dejavis/_view/datasource_permissions', {key: "/user/"+req.session.username}, function(err, res) {
+      // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
+      // Normally we'd just use the err object in an error case
+      if (res.error || !res.rows) {
+        callback(null, result, keys);
+      } else {
+
+        // Fetch associated items
+        async.forEach(res.rows, function(row, callback) {
+          fetchNode(row.value.datasource, function(err, node) {
+            if (err) { console.log('BROKEN REFERENCE!'); console.log(err); return callback(); }
+            result[node._id] = node;
+            keys.push(node._id);
+            callback();
+          });
+        }, function(err) { 
+          callback(err, result, keys);
+        });
+      }
+    });
+  });
+}
+
+
 // Express.js Configuration
 // -----------
 
@@ -307,6 +334,14 @@ app.get('/projects/search/:type/:search_str', function(req, res) {
       res.send(JSON.stringify({graph: graph, count: count}));
     });
   }
+});
+
+// Available datasources
+app.get('/datasources', function(req, res) {  
+  findDatasources(req, function(err, graph, keys) {
+    if (err) return res.send({status: "error", message: "An error occured"});
+    res.send({graph: graph, keys: keys, status: 'ok'});
+  });
 });
 
 // Returns the most recent version of the requested doc
@@ -397,13 +432,31 @@ app.post('/logout', function(req, res) {
   res.send({status: "ok"});
 });
 
+// readgraph Interface
+// app.get('/readgraph', function(req, res) {
+//   var callback = req.query.callback,
+//       query = JSON.parse(req.query.qry),
+//       options = JSON.parse(req.query.options)
+//   Data.adapter.readGraph(JSON.parse(req.query.qry), new Data.Graph(), JSON.parse(req.query.options), function(err, g) {
+//     err ? res.send(callback+"("+JSON.stringify(err)+");")
+//         : res.send(callback+"("+JSON.stringify(g)+");");
+//   }, req);
+// });
+
+// writegraph Interface
+app.put('/writegraph', function(req, res) {
+  Data.adapter.writeGraph(req.body, function(err, g) {
+    graph.merge(g); // TODO: memory leakin?
+    err ? res.send(err) : res.send(JSON.stringify({"status": "ok", "graph": g}));
+  }, req);
+});
+
 graph.fetch({"type|=": ["/type/type", "/type/config"]}, function(err, nodes) {
   if (err) {
     console.log("ERROR: Couldn't fetch schema");
     console.log(err);
   } else {
     seed = nodes.toJSON();
-    
     console.log('READY: Dejavis is listening http://localhost:6006');
     app.listen(6006);
   }
