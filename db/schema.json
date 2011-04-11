@@ -95,6 +95,11 @@
         "type": "string",
         "default": ""
       },
+      "public": {
+        "name": "Public",
+        "unique": true,
+        "type": "boolean"        
+      },
       "created_at": {
         "name": "Created at",
         "unique": true,
