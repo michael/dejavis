@@ -215,6 +215,12 @@
         "required": true,
         "type": ["/type/project"]
       },
+      "settings": {
+        "name": "Settings",
+        "unique": true,
+        "type": "object",
+        "default": {}
+      },
       "datasource": {
         "name": "Data Set",
         "unique": true,
