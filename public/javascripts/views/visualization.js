@@ -94,11 +94,12 @@ var Visualization = Backbone.View.extend({
     this.model = collection;
     this.properties = new Data.Hash({});
     
-    _.each(properties, function(property) {
-      that.properties.set(property, {aggregator: Data.Aggregators.SUM});
-    });
-    
-    this.groupKey = groupKey;
+    if (properties) {
+      _.each(properties, function(property) {
+        that.properties.set(property, {aggregator: Data.Aggregators.SUM});
+      });
+    }
+    if (groupKey) this.groupKey = groupKey;
     this.compute();
   },
   

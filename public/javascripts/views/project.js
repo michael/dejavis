@@ -52,15 +52,14 @@ var Project = Backbone.View.extend({
     
     // Init filters
     this.filters = new Data.Hash();
-    this.settings = this.activeSheet.get('settings');
+    this.settings = this.activeSheet.get('settings') || {};
     
     this.collection.properties().each(function(property, key) {
       if (property.meta.facet) {
-        var values = new Data.Hash();
-
+        
         that.filters.set(key, {
           operator: '|=',
-          values: values,
+          values: new Data.Hash(),
           objects: new Data.Hash()
         });
         
