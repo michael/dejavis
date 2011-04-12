@@ -239,6 +239,38 @@
       </div>
     </script>
     
+    <script type="text/x-ejs-template" name="new_project">
+      <div id="new_project" class="page-content">
+        <h1>New Project</h1>
+        <form id="create_project">
+          <div>
+            <label for="new_project_name">Project Name:<span>/#<%= app.username %>/PROJECT_NAME</span></label>
+            <input type="text" id="new_project_name" name="new_project_name"/>
+            <br class="clear"/>
+            <div class="input-message" id="new_project_name_message"></div>
+          </div>
+          
+          <div>
+            <label for="new_project_title">Project Name:<span>Project title</span></label>
+            <input type="text" id="Project title" name="new_project_title"/>
+            <br class="clear"/>
+          </div>
+          
+          <div>
+            <label for="datasource">Datasource:<span>Choose a data source</span></label>
+            <select id="datasource" name="datasource">
+            </select>
+            <div class="input-messages"></div>
+          </div>
+          
+          <div>
+            <label for="">&nbsp;</label>
+            <input type="submit" value="Create Project"/>
+          </div>
+        </form>
+      </div>
+    </script>
+    
     <script type="text/x-handlebars-template" name="browser_not_supported">
       <div class="browser-not-supported">
         <h1>Dejavis.org
@@ -300,6 +332,7 @@
         
         <div id="project_header">
           <h2><%= project.get('title') %></h2>
+          <div class="project-actions"><a href="#" class="delete-project" title="Delete Project">Delete</a></div>
         </div>
         
         <div id="sheets">
@@ -308,7 +341,6 @@
               <div class="sheet selected"><a href=""><%= sheet %></a></div>
             <% }); %>
             <div class="new-sheet sheet"><a href="#new-sheet">+</a></div>
-            
           </div>
         </div>
         
@@ -328,6 +360,7 @@
     <script type="text/javascript" src="/javascripts/jquery.js"></script>
     <script type="text/javascript" src="/javascripts/backbone.js"></script>
     <script type="text/javascript" src="/javascripts/data.js"></script>
+    <script type="text/javascript" src="/javascripts/ajax_adapter.js"></script>
     <script type="text/javascript" src="/javascripts/d3.js"></script>
     <script type="text/javascript" src="/javascripts/jquery.timeago.js"></script>
     <script type="text/javascript" src="/javascripts/head.min.js"></script>
@@ -349,6 +382,7 @@
     <script type="text/javascript" src="/javascripts/views/header.js"></script>
     <script type="text/javascript" src="/javascripts/views/project.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser_tab.js"></script>
+    <script type="text/javascript" src="/javascripts/views/new_project.js"></script>
     <script type="text/javascript" src="/javascripts/views/user_settings.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser.js"></script>
     <script type="text/javascript" src="/javascripts/views/visualization.js"></script>
@@ -376,7 +410,7 @@
         <div id="project_tab" class="tab hidden" view="project">
         </div>
 
-        <a href="#" class="action new-project hidden" title="Create a new project">
+        <a href="#" class="action new-project" title="Create a new project">
           <div class="view-action-icon new"></div>
         </a>
       </div>

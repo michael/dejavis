@@ -426,7 +426,7 @@ div.browser-not-supported a:hover {
 
 #header #sync_state {
   position: absolute;
-  left: 300px;
+  left: 170px;
 }
 
 /* body > #container > #content_wrapper
@@ -434,9 +434,9 @@ div.browser-not-supported a:hover {
 
 #content_wrapper {
   position: relative;
-  margin: 0;
+  /* margin: 0; */
+  margin: 0 270px 10px 270px;
 }
-
 
 /* Page Content Dialogue
 -------------------------------------------------------------------------------*/
@@ -464,7 +464,8 @@ div.browser-not-supported a:hover {
 .page-content input[type=submit] { background: #A2C44E; color: white; border: none; }
 
 /* Messages for input fields */
-.page-content .input-message { float: left; padding: 0 20px; margin: 0; 
+.page-content .input-message {
+  /*  float: left; padding: 0 20px; margin: 0; */
   font-family: Helvetica;
   font-size: 12px;
 }
@@ -1711,7 +1712,7 @@ pre {
 -------------------------------------------------------------------------------*/
 
 #startpage {
-  margin: 0px 270px 0px 270px;
+/*  margin: 0px 270px 0px 270px;*/
 }
 
 div.intro {
@@ -1813,16 +1814,16 @@ div.intro {
   left: 0px;
 }
 
-#new_document {
+/*#new_document {
   margin: 0 180px 0 100px;
-}
+}*/
 
 #user_settings {
-  margin: 0 180px 0 100px;
+/*  margin: 0 180px 0 100px;*/
 }
 
 #signup {
-  margin: 0 180px 0 100px;
+/*  margin: 0 180px 0 100px;*/
 }
 
 /* Footer
@@ -1879,9 +1880,16 @@ div.intro {
 }
 
 #project_header {
+  position: relative;
   background: #fff;
   padding: 10px 20px 0 20px;
   margin: 0 270px 0 270px;
+}
+
+#project .project-actions {
+  position: absolute;
+  right: 20px;
+  top: 20px;
 }
 
 #sheets {
