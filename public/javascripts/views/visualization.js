@@ -14,9 +14,10 @@ var Visualization = Backbone.View.extend({
   },
   el: '#visualization',
   
-  initialize: function() {
+  initialize: function(options) {
     // Default properties
     this.properties = new Data.Hash({});
+    this.project = options.project;
     
     this.groupKey = [this.groupKeys()[0].key];
     this.compute();
@@ -32,6 +33,7 @@ var Visualization = Backbone.View.extend({
     this.groupKey = [$('#group_key').val()];
     this.compute();
     this.render();
+    this.project.storeSettings();
     return false;
   },
   
@@ -39,6 +41,7 @@ var Visualization = Backbone.View.extend({
     this.properties.set($(e.currentTarget).attr('property'), {aggregator: Data.Aggregators.SUM});
     this.compute();
     this.render();
+    this.project.storeSettings();
     return false;
   },
   
@@ -46,6 +49,7 @@ var Visualization = Backbone.View.extend({
     this.properties.del($(e.currentTarget).attr('property'));
     this.compute();
     this.render();
+    this.project.storeSettings();
     return false;
   },
   
@@ -84,9 +88,17 @@ var Visualization = Backbone.View.extend({
     }
   },
   
-  // Update collection
-  update: function(collection) {
+  // Update data + settings
+  update: function(collection, groupKey, properties) {
+    var that = this;
     this.model = collection;
+    this.properties = new Data.Hash({});
+    
+    _.each(properties, function(property) {
+      that.properties.set(property, {aggregator: Data.Aggregators.SUM});
+    });
+    
+    this.groupKey = groupKey;
     this.compute();
   },
   

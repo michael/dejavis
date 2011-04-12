@@ -86,9 +86,9 @@ function getProject(username, projectname, callback) {
           if (!node.sheets) return callback(null);
           async.forEach(node.sheets, function(sheet, callback) {
             fetchNode(sheet, function(err, node) {
-              if (err) callback(err);
+              if (err) return callback(err);
               result[node._id] = node;
-              delete result[node._id].datasource;
+              // delete result[node._id].datasource;
               callback(null);
             });
           }, function(err) {

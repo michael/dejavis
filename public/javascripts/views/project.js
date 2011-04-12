@@ -6,7 +6,8 @@ var Project = Backbone.View.extend({
     'click .add-choice': 'addChoice',
     'click .remove-choice': 'removeChoice',
     'click .new-sheet': 'newSheet',
-    'click .sheet': 'switchSheet'
+    'click .sheet': 'switchSheet',
+    'click a.delete-project': 'delete',
   },
   
   el: '#project_wrapper',
@@ -27,25 +28,52 @@ var Project = Backbone.View.extend({
     return false;
   },
   
+  delete: function() {
+    var that = this;
+    var id = this.model._id
+    if (confirm('Are you sure to delete this project?')) {
+      graph.del(id);
+      app.browser.graph.del(id);
+      app.browser.render();
+      setTimeout(function() {
+        app.toggleView('browser');
+      }, 300);
+      notifier.notify(Notifications.DOCUMENT_DELETED);
+      this.close();
+    }
+    return false;
+  },
   
   initSheet: function() {
     var that = this;
     
     // Init visualization view
-    this.visualization = new Visualization({model: this.filteredCollection});
+    this.visualization = new Visualization({model: this.filteredCollection, project: this});
     
     // Init filters
     this.filters = new Data.Hash();
+    this.settings = this.activeSheet.get('settings');
+    
     this.collection.properties().each(function(property, key) {
       if (property.meta.facet) {
+        var values = new Data.Hash();
+
         that.filters.set(key, {
           operator: '|=',
-          values: new Data.Hash(),
+          values: values,
           objects: new Data.Hash()
         });
+        
+        // Import values from settings
+        if (this.settings && this.settings.filters) {
+          _.each(this.settings.filters[key].values, function(val) {
+            that.addValue(key, val);
+          });
+        }
       }
     });
     
+    this.filter();
     this.updateFacets();
   },
   
@@ -64,8 +92,8 @@ var Project = Backbone.View.extend({
           that.collection = new Data.Collection(res);
           that.previousCollection = that.collection;
           that.filteredCollection = that.collection;
-          that.initSheet()
           that.activeSheet = sheet;
+          that.initSheet()
           that.render();
         } else {
           $('#project_wrapper').html("The sheet couldn't be loaded. You may not be permitted to access the datasource.");
@@ -89,48 +117,87 @@ var Project = Backbone.View.extend({
         that.loadSheet(that.model.get('sheets').first());
         
         // that.trigger('changed');
-        that.loadedProjects[username+"/"+projectname] = id;
+        // that.loadedProjects[username+"/"+projectname] = id;
         
         // Update browser graph reference
         app.browser.graph.set('objects', id, that.model);
         app.toggleView('project');
         that.render();
+        
+        if (controller) {
+          controller.saveLocation('#'+username+'/'+projectname);
+          $('#project_wrapper').attr('url', '#'+username+'/'+projectname);
+        }
       } else {
         $('#project_wrapper').html('Project loading failed');
       }
     }
     
-    var id = that.loadedProjects[username+"/"+projectname];
     $('#project_tab').show();
+    $('#project_tab').html('&nbsp;&nbsp;&nbsp;Loading...');
     
-    // Already loaded - no need to fetch it
-    if (id) {
-      // TODO: check if there are changes from a realtime session
-      init(id);
-    } else {
-      $('#project_tab').html('&nbsp;&nbsp;&nbsp;Loading...');
-      $.ajax({
-        type: "GET",
-        url: "/projects/"+username+"/"+projectname,
-        dataType: "json",
-        success: function(res) {
-          if (res.status === 'error') {
-            $('#project_wrapper').html('Document loading failed');
-          } else {
-            graph.merge(res.graph);
-            init(res.id);
-          }
-        },
-        error: function(err) {
-          $('#project_wrapper').html('Project loading failed');
+    $.ajax({
+      type: "GET",
+      url: "/projects/"+username+"/"+projectname,
+      dataType: "json",
+      success: function(res) {
+        if (res.status === 'error') {
+          $('#project_wrapper').html('Document loading failed');
+        } else {
+          graph.merge(res.graph);
+          init(res.id);
         }
+      },
+      error: function(err) {
+        $('#project_wrapper').html('Project loading failed');
+      }
+    });
+  },
+  
+  new: function(name, title, datasourceId) {
+    var that = this;
+    function emptyProject() {
+      // disable auto-sync for the moment
+      window.pendingSync = true;
+      var project = graph.set(Data.uuid('/project/'+ app.username +'/'), {
+        type: "/type/project",
+        creator: "/user/"+app.username,
+        created_at: new Date(),
+        updated_at: new Date(),
+        name: name,
+        sheets: [],
+        title: title
       });
+      var sheet = graph.set(null, {
+        type: "/type/sheet",
+        name: "comparison",
+        project: project._id,
+        datasource: datasourceId
+      });
+      project.set({
+        sheets: [sheet._id]
+      });
+      return project;
     }
+    
+    this.model = emptyProject();
+
+    window.sync(function() {
+      that.load(app.username, name);
+      // Update browser graph
+      if (app.browser && app.browser.query && app.browser.query.type === "user" && app.browser.query.value === app.username) {
+        app.browser.graph.set('objects', that.model._id, that.model);
+        app.browser.render();
+      }
+    });
   },
   
   // Close Project
   close: function() {
-    
+    this.model = null;
+    controller.saveLocation('#'+app.username);
+    $('#project_tab').hide();
+    app.toggleView('browser');
   },
   
   renderTab: function() {
@@ -149,8 +216,12 @@ var Project = Backbone.View.extend({
           value = $(e.currentTarget).attr('value');
     
     this.addValue(property, value);
+    
+    this.filter(property);
+    
     this.updateFacets();
     this.render();
+    this.storeSettings();
     return false;
   },
   
@@ -160,8 +231,12 @@ var Project = Backbone.View.extend({
         value = $(e.currentTarget).attr('value');
     
     this.removeValue(property, value);
+    
+    this.filter(property);
+    
     this.updateFacets();
     this.render();
+    this.storeSettings();
     return false;
   },
   
@@ -182,7 +257,7 @@ var Project = Backbone.View.extend({
     filter.values.set(value, value);
     filter.objects = filter.objects.union(p.all('values').get(value).referencedObjects);
     
-    this.filter(property);
+    // this.filter(property);
   },
   
   // Update facet objects by removing a particular value
@@ -193,7 +268,7 @@ var Project = Backbone.View.extend({
     filter.values.del(value);
     filter.objects = filter.objects.difference(p.all('values').get(value).referencedObjects);
     
-    this.filter(property);
+    // this.filter(property);
   },
   
   // Get values (=facet-choices) for a particular property
@@ -231,7 +306,6 @@ var Project = Backbone.View.extend({
       return v1 === v2 ? 0 : (v1 > v2 ? -1 : 1);
     };
     return values.sort(DESC_BY_OBJECT_COUNT);
-    
   },
   
   // Perform filters on the input collection
@@ -260,9 +334,33 @@ var Project = Backbone.View.extend({
         properties: this.collection.properties().toJSON()
       });
     }
-
+    
     // Update visualization
-    this.visualization.update(this.filteredCollection);
+    this.visualization.update(this.filteredCollection, this.settings.group_key, this.settings.properties);
+  },
+  
+  importSettings: function(settings) {
+    
+  },
+  
+  storeSettings: function() {
+    // Settings are only stored for the owner
+    if (this.model.get('creator')._id !== "/user/"+app.username) return;
+    
+    var settings = {filters: {}, group_key: null, properties: []};
+    this.filters.each(function(filter, key) {
+      settings.filters[key] = {
+        operator: "|=",
+        values: filter.values.keys()
+      }
+    });
+    
+    settings.group_key = this.visualization.groupKey;
+    settings.properties = this.visualization.properties.keys();
+    
+    this.activeSheet.set({
+      settings: settings
+    });
   },
   
   // Facets and current Facet choices in order to power the view
@@ -291,7 +389,6 @@ var Project = Backbone.View.extend({
         });
       }
     });
-    
     this.facets = facets;
   },
   
@@ -310,6 +407,7 @@ var Project = Backbone.View.extend({
     } else {
       $('#project_tab').html('&nbsp;&nbsp;&nbsp;Loading data...');
     }
+    this.delegateEvents();
     return this;
   }
 });

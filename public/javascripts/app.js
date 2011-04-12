@@ -16,7 +16,8 @@ var Application = Backbone.View.extend({
     'click a.load-project': 'loadProject',
     'click a.logout': 'logout',
     'click .tab': 'switchTab',
-    'click a.toggle-user-settings': 'toggleUserSettings'
+    'click a.toggle-user-settings': 'toggleUserSettings',
+    'click .new-project': 'newProject'
   },
   
   query: function() {
@@ -37,7 +38,7 @@ var Application = Backbone.View.extend({
     this.bind('authenticated', function() {
       that.authenticated = true;
       // Re-render browser
-      // $('.new-project').show();
+      $('.new-project').show();
       that.render();
     });
     
@@ -71,15 +72,19 @@ var Application = Backbone.View.extend({
     this.toggleView($(e.currentTarget).attr('view'));
   },
   
+  newProject: function() {
+    this.content = new NewProject({el: '#content_wrapper'});
+    this.content.render();
+    
+    this.toggleView('content');
+    return false;
+  },
+  
   loadProject: function(e) {    
     var user = $(e.currentTarget).attr('user');
         name = $(e.currentTarget).attr('name');
     
     app.project.load(user, name);
-    if (controller) {
-      controller.saveLocation($(e.currentTarget).attr('href'));
-      $('#project_wrapper').attr('url', $(e.currentTarget).attr('href'));
-    }
     return false;
   },
   
@@ -191,7 +196,7 @@ var Application = Backbone.View.extend({
   }
 });
 
-// Data.setAdapter('AjaxAdapter');
+Data.setAdapter('AjaxAdapter');
 
 var remote,                              // Remote handle for server-side methods
     app,                                 // The Application
@@ -238,26 +243,30 @@ var remote,                              // Remote handle for server-side method
       if (graph.dirtyNodes().length>0) return "You have unsynced changes, which will be lost. Are you sure you want to leave this page?";
     }
     
-    var pendingSync = false;
+    window.sync = function(callback) {
+      $('#sync_state').html('Synchronizing...');
+      graph.sync(function(err, invalidNodes) {
+        window.pendingSync = false;
+        if (!err && invalidNodes.length === 0) {
+          $('#sync_state').html('Successfully synced.');
+          setTimeout(function() {
+            $('#sync_state').html('');
+          }, 3000);
+          if (callback) callback();
+        } else {
+          // console.log(err);
+          // console.log(invalidNodes.toJSON());
+          confirm('There was an error during synchronization. The workspace will be reset for your own safety');
+          window.location.reload(true);
+        }
+      });
+    };
+    
+    window.pendingSync = false;
     graph.bind('dirty', function() {
-      // Reload document browser      
-      if (!pendingSync) {
-        pendingSync = true;
-        setTimeout(function() {
-          $('#sync_state').html('Synchronizing...');
-          graph.sync(function(err, invalidNodes) {
-            pendingSync = false;
-            if (!err && invalidNodes.length === 0) {
-              $('#sync_state').html('Successfully synced.');
-              setTimeout(function() {
-                $('#sync_state').html('');
-              }, 3000);
-            } else {
-              confirm('There was an error during synchronization. The workspace will be reset for your own safety');
-              window.location.reload(true);
-            }
-          });
-        }, 3000);
+      if (!window.pendingSync) {
+        window.pendingSync = true;
+        setTimeout(window.sync, 3000);
       }
     });
     
