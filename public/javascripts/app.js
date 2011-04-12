@@ -17,6 +17,7 @@ var Application = Backbone.View.extend({
     'click a.logout': 'logout',
     'click .tab': 'switchTab',
     'click a.toggle-user-settings': 'toggleUserSettings',
+    'click a.toggle-signup': 'toggleSignup',
     'click .new-project': 'newProject'
   },
   
@@ -146,6 +147,13 @@ var Application = Backbone.View.extend({
   
   toggleUserSettings: function() {
     this.content = new UserSettings({el: '#content_wrapper'});
+    this.content.render();
+    this.toggleView('content');    
+    return false;
+  },
+  
+  toggleSignup: function() {
+    this.content = new Signup({el: '#content_wrapper'});
     this.content.render();
     this.toggleView('content');    
     return false;

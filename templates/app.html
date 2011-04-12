@@ -182,6 +182,42 @@
       </div>
     </script>
     
+    <script type="text/x-ejs-template" name="signup">
+      <div id="signup" class="page-content">
+        <h1>Create Account</h1>
+        <form id="signup-form" class="auth-form">
+          <div>
+            <label for="signup_user">Username:<span>/#USERNAME (No special characters)</span></label>
+            <input type="text" id="signup_user" name="username"/>
+            <div class="input-message" id="signup_user_message"></div>
+          </div>
+
+          <div>
+            <label for="signup_name">Full Name:<span>Your real name</span></label>
+            <input type="text" id="signup_name" name="name"/>
+          </div>
+
+          <div>
+            <label for="signup_email">Email:<span>A valid email address</span></label>
+            <input type="text" id="signup_email" name="email"/>
+          </div>
+
+          <div>
+            <label for="signup_password">Password:<span>At least 3 characters</span></label>
+            <input type="password" id="signup_password" name="password"/>
+          </div>
+
+          <div id="registration_error_message"></div>
+          <br/>
+          <div>
+
+            <label for="">&nbsp;</label>
+            <input type="submit" value="Create Account"/>
+          </div>
+        </form>
+      </div>
+    </script>
+    
     <script type="text/x-ejs-template" name="user_settings">
       <div id="user_settings" class="page-content">
 
@@ -351,7 +387,6 @@
         <div id="visualization">
           Loading Visualization ...
         </div>
-        
       </div>
     </script>
     
@@ -383,6 +418,7 @@
     <script type="text/javascript" src="/javascripts/views/project.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser_tab.js"></script>
     <script type="text/javascript" src="/javascripts/views/new_project.js"></script>
+    <script type="text/javascript" src="/javascripts/views/signup.js"></script>
     <script type="text/javascript" src="/javascripts/views/user_settings.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser.js"></script>
     <script type="text/javascript" src="/javascripts/views/visualization.js"></script>

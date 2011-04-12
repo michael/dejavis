@@ -381,6 +381,12 @@ app.post('/login', function(req, res) {
   });
 });
 
+app.post('/logout', function(req, res) {  
+  delete req.session.username;
+  delete req.session.seed;
+  res.send({status: "ok"});
+});
+
 app.post('/updateuser', function(req, res) {
   var username = req.body.username;
   
@@ -426,10 +432,56 @@ app.post('/updateuser', function(req, res) {
   });
 });
 
-app.post('/logout', function(req, res) {  
-  delete req.session.username;
-  delete req.session.seed;
-  res.send({status: "ok"});
+
+app.post('/register', function(req, res) {
+  var username = req.body.username,
+      password = req.body.password,
+      email = req.body.email,
+      name = req.body.name;
+  
+  var graph = new Data.Graph(seed);
+  if (!username || username.length === 0) {
+    return res.send({"status": "error", "field": "username", "message": "Please choose a username."});
+  }
+  
+  db.view(db.uri.pathname+'/_design/dejavis/_view/users', {key: username.toLowerCase()}, function(err, result) {
+    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
+    // Normally we'd just use the err object in an error case
+    if (result.error || !result.rows) return res.send({"status": "error", "field": "all", "message": "Unknown error."});
+    if (result.rows.length > 0) return res.send({"status": "error", "field": "username", "message": "Username is already taken."});
+    
+    var user = graph.set('/user/'+username.toLowerCase(), {
+      type: '/type/user',
+      username: username,
+      name: name,
+      email: email,
+      password: encryptPassword(password),
+      created_at: new Date()
+    });
+    
+    if (user.validate() && password.length >= 3) {
+      graph.sync(function(err) {
+        if (!err) {
+          var seed = {};
+          seed[user._id] = user.toJSON();
+          delete seed[user._id].password;
+          res.send({
+            status: "ok",
+            username: username.toLowerCase(),
+            seed: seed
+          });
+          
+          req.session.username = username.toLowerCase();
+          req.session.seed = seed;
+        } else {
+          return res.send({"status": "error", "field": "all", "message": "Unknown error."});
+        }
+      });
+    } else {
+      console.log(user.errors);
+      return res.send({"status": "error", "errors": user.errors, "field": "all", "message": "Validation error. Check your input."});
+    }
+  });
 });
 
 // readgraph Interface
