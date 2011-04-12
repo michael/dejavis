@@ -1958,6 +1958,8 @@ svg .bar text {
 #settings {
   float: right;
   width: 250px;
+  position: relative;
+  top: -115px;
 }
 
 /* body > #container > #sheet > #facets

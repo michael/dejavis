@@ -64,8 +64,8 @@ var Project = Backbone.View.extend({
         });
         
         // Import values from settings
-        if (this.settings && this.settings.filters) {
-          _.each(this.settings.filters[key].values, function(val) {
+        if (that.settings && that.settings.filters) {
+          _.each(that.settings.filters[key].values, function(val) {
             that.addValue(key, val);
           });
         }
@@ -95,7 +95,7 @@ var Project = Backbone.View.extend({
           that.initSheet()
           that.render();
         } else {
-          $('#project_wrapper').html("The sheet couldn't be loaded. You may not be permitted to access the datasource.");
+          $('#project_wrapper').html("<div id=\"project\"><div id=\"project_header\"><h2>The sheet couldn't be loaded.</h2><p>You may not be permitted to access the datasource.<br/><br/></p></div></div>");
         }
       },
       error: function(err) {
@@ -106,6 +106,8 @@ var Project = Backbone.View.extend({
   
   load: function(username, projectname, mode) {
     var that = this;
+    
+    this.activeSheet = null;
     that.mode = mode || (username === app.username ? 'edit' : 'show');
     $('#tabs').show();
     
@@ -134,6 +136,8 @@ var Project = Backbone.View.extend({
     
     $('#project_tab').show();
     $('#project_tab').html('&nbsp;&nbsp;&nbsp;Loading...');
+    
+    $('#project_wrapper').html("<div id=\"project\"><div id=\"project_header\"><h2>Loading project...</h2><p>Depending on the amount of data this may take a while.<br/><br/></p></div></div>");
     
     $.ajax({
       type: "GET",
@@ -343,22 +347,23 @@ var Project = Backbone.View.extend({
   },
   
   storeSettings: function() {
+    var that = this;
     // Settings are only stored for the owner
     if (this.model.get('creator')._id !== "/user/"+app.username) return;
     
-    var settings = {filters: {}, group_key: null, properties: []};
+    this.settings = {filters: {}, group_key: null, properties: []};
     this.filters.each(function(filter, key) {
-      settings.filters[key] = {
+      that.settings.filters[key] = {
         operator: "|=",
         values: filter.values.keys()
       }
     });
     
-    settings.group_key = this.visualization.groupKey;
-    settings.properties = this.visualization.properties.keys();
+    this.settings.group_key = this.visualization.groupKey;
+    this.settings.properties = this.visualization.properties.keys();
     
     this.activeSheet.set({
-      settings: settings
+      settings: that.settings
     });
   },
   
