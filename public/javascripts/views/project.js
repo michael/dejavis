@@ -74,6 +74,8 @@ var Project = Backbone.View.extend({
     
     this.filter();
     this.updateFacets();
+    
+
   },
   
   loadSheet: function(sheet) {
@@ -94,6 +96,9 @@ var Project = Backbone.View.extend({
           that.activeSheet = sheet;
           that.initSheet()
           that.render();
+          
+          // Make editable
+          that.makeEditable();
         } else {
           $('#project_wrapper').html("<div id=\"project\"><div id=\"project_header\"><h2>The sheet couldn't be loaded.</h2><p>You may not be permitted to access the datasource.<br/><br/></p></div></div>");
         }
@@ -101,6 +106,26 @@ var Project = Backbone.View.extend({
       error: function(err) {
         $('#project_wrapper').html("The sheet couldn't be loaded.");
       }
+    });
+  },
+  
+  makeEditable: function() {
+    var that = this;
+    if (this.mode !== 'edit') return;
+    
+    // Editor for title
+    this.$node = $('#project_title').attr('contenteditable', true).unbind();
+    
+    editor.activate(this.$node, {
+      placeholder: 'Enter Project Title',
+      multiline: false,
+      markup: false
+    });
+    
+    editor.bind('changed', function() {
+      that.model.set({
+        title: editor.content()
+      });
     });
   },
   
@@ -173,7 +198,7 @@ var Project = Backbone.View.extend({
       });
       var sheet = graph.set(null, {
         type: "/type/sheet",
-        name: "comparison",
+        name: "Sheet 1",
         project: project._id,
         datasource: datasourceId
       });

@@ -229,9 +229,11 @@ var remote,                              // Remote handle for server-side method
       return;
     }
     
+    editor = new Proper();
+    
     // Init Application
     // --------------
-
+    
     var items = new Data.Collection(items_fixture);
     app = new Application({el: '#container', model: items, session: session});
     
