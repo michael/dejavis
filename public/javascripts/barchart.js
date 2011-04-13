@@ -12,32 +12,88 @@ var Barchart = function(el, options) {
   var properties;
   var propertyColors;
   var data;
-  var x; // x-Scale
-  var y; // y-Scale
-  var maxx;
-  var minx;
+  var max, min;
+  var units = {};
   var height,
+      nullPos = 0,
       width,
       barHeight = 20,
       barOffset = 22,
+      plotWidth = 600,
       itemOffset;
+
+  function scale(p, value) {
+    var unit = p.meta && p.meta.unit ? p.meta.unit : "default";
+    return units[unit].scale(value);
+  }
   
   function prepareData() {
-    maxx = d3.max(c.items(), function(d) {
+    max = d3.max(c.items(), function(d) {
       return d3.max(properties, function(p) {
         return d.get(p);
       });
     });
     
-    minx = d3.min(c.items(), function(d) {
+    min = d3.min(c.items(), function(d) {
       return d3.min(properties, function(p) {
         return d.get(p);
       });
     });
     
-    x = d3.scale.linear()
-        .domain([Math.min(minx, 0), maxx])
+    var fullScale = d3.scale.linear()
+        .domain([Math.min(min, 0), Math.max(max, 0)])
         .range([0, 600]);
+        
+    nullPos = fullScale(0);
+    
+    // Reset units hash
+    units = {};
+    
+    // Build unit groups
+    _.each(properties, function(pkey) {
+      var p = c.properties().get(pkey);
+      var unit = p.meta && p.meta.unit ? p.meta.unit : "default";
+      
+      if (units[unit]) {
+        units[unit].min = Math.min(units[unit].min, d3.min(c.items(), function(d) { return d.get(pkey); }));
+        units[unit].max = Math.max(units[unit].max, d3.max(c.items(), function(d) { return d.get(pkey); }));
+      } else {
+        units[unit] = {
+          min: d3.min(c.items(), function(d) { return d.get(pkey); }),
+          max: d3.max(c.items(), function(d) { return d.get(pkey); })
+        }
+      }
+    });
+    
+    // Build scales for units
+    _.each(units, function(unit, key) {
+      // var nullPos = 200;
+      
+      if (!(Math.abs(unit.min - unit.max) > 0)) {
+        unit.max = unit.min + 1;
+      }
+      function candidate() {
+        return d3.scale.linear()
+            .domain([unit.min, 0]) // keep 0 for domain max?
+            .range([0, nullPos]);
+      }
+      function alternative() {
+        return d3.scale.linear()
+            .domain([0, unit.max])
+            .range([nullPos, 600]);
+      }
+      
+      var s;
+      if (unit.min<0) {
+        s = candidate();
+        if (s(unit.max) > 600) {
+          s = alternative();
+        }
+      } else {
+        s = alternative();
+      }
+      unit.scale = s;
+    });
   }
   
   function renderItems() {    
@@ -84,25 +140,25 @@ var Barchart = function(el, options) {
     
     
     // Rulers
-    var rules = chart.selectAll("g.rule")
-      .data(x.ticks(5))
-      .enter().append("svg:g")
-        .attr('class', 'rule')
-        .attr('transform', function(d) { return 'translate('+ (~~x(d)-0.5) +', 0)' })
-
-    rules.append('svg:line')
-      // .attr("y1", -10)
-      .attr("y2", -10)
-      // .attr("stroke", function(d) { return d !== 0 ? "#fff" : "#666"})
-      .attr("stroke", '#666')
-      .attr("stroke-width", function(d) { return d !== 0 ? "1" : "1"});
-
-    rules.append('svg:text')
-      .attr("class", "label")
-      .attr("transform", "translate(0, -20)") // invert flipped coordinate system
-      .attr("fill", "#444")
-      .attr("text-anchor", "middle")
-      .text(function(d) { return d; })
+    // var rules = chart.selectAll("g.rule")
+    //   .data(x.ticks(5))
+    //   .enter().append("svg:g")
+    //     .attr('class', 'rule')
+    //     .attr('transform', function(d) { return 'translate('+ (~~x(d)-0.5) +', 0)' })
+    // 
+    // rules.append('svg:line')
+    //   // .attr("y1", -10)
+    //   .attr("y2", -10)
+    //   // .attr("stroke", function(d) { return d !== 0 ? "#fff" : "#666"})
+    //   .attr("stroke", '#666')
+    //   .attr("stroke-width", function(d) { return d !== 0 ? "1" : "1"});
+    // 
+    // rules.append('svg:text')
+    //   .attr("class", "label")
+    //   .attr("transform", "translate(0, -20)") // invert flipped coordinate system
+    //   .attr("fill", "#444")
+    //   .attr("text-anchor", "middle")
+    //   .text(function(d) { return d; })
 
 
     // Item separator
@@ -124,14 +180,17 @@ var Barchart = function(el, options) {
     
     var bars = items.selectAll('g').data(function(d) {
               return _.map(properties, function(property) {
-                return d.get(property); // the value
+                return {
+                  value: d.get(property),
+                  property: c.properties().get(property)
+                }; // the value
               });
             }).enter().append("svg:g")
               .attr("class", "bar")
               .attr("transform", function(d,i) {
-                var xx = d < 0 ? x(0) - _.dist(x(d), x(0)) : x(0);
-                xx = ~~xx;
-                return "translate("+xx+", "+(60+barOffset*i+0.5)+")";
+                var xOffset = d.value < 0 ? scale(d.property, 0) - _.dist(scale(d.property, d.value), scale(d.property, 0)) : scale(d.property, 0);
+                xOffset = ~~xOffset;
+                return "translate("+xOffset+", "+(60+barOffset*i+0.5)+")";
               });
 
     bars.on("mouseover", function(d) {
@@ -151,14 +210,20 @@ var Barchart = function(el, options) {
     
     bars.append('svg:rect')
       .attr("height", barHeight)
-      .attr("width", function(d, i) { return Math.max(~~_.dist(x(d), x(0)), 2); })
+      .attr("width", function(d, i) { 
+        return Math.max(~~_.dist(scale(d.property, d.value), scale(d.property, 0)), 2); 
+      })
       .attr("fill", function(d, i) { return propertyColors(properties[i]); })
       .attr("opacity", 0.8)
       
     bars.append('svg:text')
-      .text(function(d) { return ~~d; })
-      .attr("x", function(d, i) { 
-        return ~~_.dist(x(d), x(0));
+      .text(function(d) {
+        var str = ~~d.value;
+        if (d.property.meta && d.property.meta.unit) str += " "+d.property.meta.unit;
+        return str;
+      })
+      .attr("x", function(d, i) {
+        return ~~_.dist(scale(d.property, d.value), scale(d.property, 0));
       })
       .attr("transform", "translate(5, 14)")
       .attr("fill" , "#999")
@@ -168,7 +233,7 @@ var Barchart = function(el, options) {
     
     items.append("svg:text")
         .attr("class", "item-label")
-        .attr("transform", "translate("+ ~~x(0) +", 40)")
+        .attr("transform", "translate("+ ~~scale(c.properties().get(properties[0]), 0) +", 40)")
         .attr("fill", "#444")
         .text(function(d, i) {
           var str = d.get(id[0]);
