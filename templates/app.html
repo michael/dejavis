@@ -145,8 +145,54 @@
     
     <script type="text/x-ejs-template" name="startpage">
       <div id="startpage">
-        <h2>Welcome to Dejavis.</h2>
-        <p>Please log in with your usename and password.</p>
+        <div class="intro"><b>Déjàvis</b> is a tool for analyzing and visualizing data.</div>
+        <p class="feature-descr">Please log in with your username or password and enter the workspace</p>
+        <!-- Features -->
+        
+        <!--<div id="features">
+          <div class="feature write">
+            <div class="feature-wrapper">
+              <h1 class="feature-title">
+                Browse
+              </h1>
+              <p class="feature-descr">
+                <b>Find</b> and <b>display</b> data visualization projects.
+              </p> 
+              <ul class="feature-properties">
+                <li>
+                  <div>Search by Keyword</div>
+                  <div class="descr">Find relevant projects based on keywords</div>
+                </li>
+                <li>
+                  <div>Publish</div>
+                  <div class="descr">Publish and instantly share your projects</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="feature browse">
+            <div class="feature-wrapper">
+              <h1 class="feature-title">
+                Analyze
+              </h1>
+              <p class="feature-descr">
+                <b>Analyze</b> and <b>visualize</b> data right in the <b>browser</b>.
+              </p>
+              <ul class="feature-properties">
+                <li>
+                  <div>Filter</div>
+                  <div class="descr">Filter data items using faceted navigation</div>
+                </li>
+                <li>
+                  <div>Visualize</div>
+                  <div class="descr">Create visualizations from existing data sources.</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>-->
       </div>
     </script>
     
@@ -367,14 +413,14 @@
         </div>
         
         <div id="project_header">
-          <h2><%= project.get('title') %></h2>
+          <h2 id="project_title" title="Click to edit"><%= project.get('title') %></h2>
           <div class="project-actions"><a href="#" class="delete-project" title="Delete Project">Delete</a></div>
         </div>
         
         <div id="sheets">
           <div class="sheet-tabs">
             <% project.get('sheets').each(function(sheet) { %>
-              <div class="sheet selected"><a href=""><%= sheet %></a></div>
+              <div id="active_sheet_tab" class="sheet selected"><%= sheet %></div>
             <% }); %>
             <div class="new-sheet sheet"><a href="#new-sheet">+</a></div>
           </div>
@@ -397,6 +443,7 @@
     <script type="text/javascript" src="/javascripts/data.js"></script>
     <script type="text/javascript" src="/javascripts/ajax_adapter.js"></script>
     <script type="text/javascript" src="/javascripts/d3.js"></script>
+    <script type="text/javascript" src="/javascripts/proper.js"></script>
     <script type="text/javascript" src="/javascripts/jquery.timeago.js"></script>
     <script type="text/javascript" src="/javascripts/head.min.js"></script>
     
@@ -421,6 +468,7 @@
     <script type="text/javascript" src="/javascripts/views/signup.js"></script>
     <script type="text/javascript" src="/javascripts/views/user_settings.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser.js"></script>
+    <script type="text/javascript" src="/javascripts/views/sheet.js"></script>
     <script type="text/javascript" src="/javascripts/views/visualization.js"></script>
     
     <!-- App -->
