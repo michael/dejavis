@@ -281,6 +281,9 @@ var Project = Backbone.View.extend({
   addValue: function(property, value) {
     var p = this.collection.properties().get(property);
     var filter = this.filters.get(property);
+    
+    // Skip values that do not exist in the current dataset
+    if (!p.all('values').get(value)) return;
     // Add new value to the filter
     filter.values.set(value, value);
     filter.objects = filter.objects.union(p.all('values').get(value).referencedObjects);
