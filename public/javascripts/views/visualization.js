@@ -16,7 +16,7 @@ var Visualization = Backbone.View.extend({
   
   initialize: function(options) {
     // Default properties
-    this.properties = new Data.Hash({});
+    this.properties = new Data.Hash();
     this.project = options.project;
     
     this.groupKey = [this.groupKeys()[0].key];
@@ -37,8 +37,22 @@ var Visualization = Backbone.View.extend({
     return false;
   },
   
+  updateProperties: function() {
+    var that = this;
+    
+    // Preserve order
+    var props = new Data.Hash();
+    this.availableProperties().each(function(p, key) {
+      if (that.properties.get(key)) {
+        props.set(key, {aggregator: Data.Aggregators.SUM});
+      }
+    });
+    this.properties = props;
+  },
+  
   addProperty: function(e) {
     this.properties.set($(e.currentTarget).attr('property'), {aggregator: Data.Aggregators.SUM});
+    this.updateProperties();
     this.compute();
     this.render();
     this.project.storeSettings();
@@ -47,6 +61,7 @@ var Visualization = Backbone.View.extend({
   
   removeProperty: function(e) {
     this.properties.del($(e.currentTarget).attr('property'));
+    this.updateProperties();
     this.compute();
     this.render();
     this.project.storeSettings();
