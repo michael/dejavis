@@ -36,20 +36,6 @@
       </div>
     </script>
     
-    <!-- name="project" ? -->
-    <script type="text/x-ejs-template" name="sheet">
-      <div id="container">
-        <div id="sheet">
-          <div id="browser">
-          
-          </div>
-          <div id="visualization">
-          
-          </div>
-        </div>
-      </div>
-    </script>
-    
     <script type="text/x-ejs-template" name="browser_tab">
       <div class="cursor"><span></span></div>
       <div class="icon browse"></div>
@@ -104,11 +90,6 @@
       <div id="browser_inner_wrapper">
         <% if (projects.length > 0) { %>
           <div id="browser">
-
-            
-            <!--<div id="facets">
-            </div>-->
-
             <div id="documents">
               <h2><%= projects.length %> Project<%= projects.length > 1 ? 's' : '' %></h2>
               <table>
@@ -193,38 +174,6 @@
           </div>
 
         </div>-->
-      </div>
-    </script>
-    
-    <script type="text/x-ejs-template" name="visualization">
-      <div id="settings">
-        <div id="group">
-          <h3>Group by</h3>
-
-          <select id="group_key">
-            <% group_keys.each(function(p) { %>
-              <option value="<%= p.key %>"<% if (group_key[0] === p.key) {%> selected="selected"<% } %>>
-                <%= p.name %> (<%= p.all('values').length %>)
-              </option>
-            <% }); %>
-          </select>
-        </div>
-        
-        <div id="properties">
-          <h3>Properties</h3>
-          <div id="selected_properties">
-            <% properties.each(function(p, key, i) { %>
-              <a href="#"><div class="property<%= selected_properties.get(p.key) ? ' remove selected' : ' add' %>" index="<%= i %>" property="<%= p.key %>">
-                <div class="color" style="background: <%= propertyColors(p.key) %>"></div>
-                <span><%= p.name %></span>
-              </div></a>
-            <% }); %>
-          </div>
-        </div>
-      </div>
-      
-      <div id="canvas">
-        
       </div>
     </script>
     
@@ -365,7 +314,6 @@
             Dejavis makes use of the latest browser technology. In order to create, publish<br/> and view visualizations online,
             you need to upgrade your browser.
           </p>
-
           <p class="recommendation">We recommend one of these:</p>
           <div style="text-align: center;">
             <a href="http://www.google.com/chrome/" title="Google Chrome"><img src="/images/chrome.png"/></a>
@@ -375,43 +323,88 @@
         </div>
       </div>
     </script>
-
-    <script type="text/x-ejs-template" name="project">
-      <div id="project">
+    
+    <script type="text/x-ejs-template" name="sheet">
+      <div id="facets">
+        <div class="list">
+          <% facets.each(function(facet) { %>
+            <div class="facet" operator="|=" property="<%= facet.property.key %>">
+              <h3><%= facet.property.name %></h3>
+              <ul class="facet-choices">
+                <% facet.selected_choices.each(function(choice) { %>
+                  <li class="facet-choice selected">
+                    <a href="#" class="remove-choice" property="<%= facet.property.key %>" operator="|=" value="<%= choice._id %>">
+                      <div class="tick-icon"></div>
+                      <%= choice.name %>
+                      <span class="item-count"><%= choice.count %></span>
+                    </a>
+                  </li>
+                <% }); %>
+              </ul>
+              <ul class="facet-choices-available">
+                <% facet.choices.each(function(choice) { %>
+                  <li class="facet-choice">
+                    <a href="#" class="add-choice" property="<%= facet.property.key %>" operator="|=" value="<%= choice._id %>">
+                      <div class="tick-icon ticked"></div>
+                      <%= choice.name %>
+                      <span class="item-count"><%= choice.count %></span>
+                    </a>
+                  </li>
+                <% }); %>
+              </ul>
+            </div>
+          <% }); %>
+        </div>
+      </div>
       
-        <div id="facets">
-          
-          <div class="list">
-            <% facets.each(function(facet) { %>
-              <div class="facet" operator="|=" property="<%= facet.property.key %>">
-                <h3><%= facet.property.name %></h3>
-                <ul class="facet-choices">
-                  <% facet.selected_choices.each(function(choice) { %>
-                    <li class="facet-choice selected">
-                      <a href="#" class="remove-choice" property="<%= facet.property.key %>" operator="|=" value="<%= choice._id %>">
-                        <div class="tick-icon"></div>
-                        <%= choice.name %>
-                        <span class="item-count"><%= choice.count %></span>
-                      </a>
-                    </li>
-                  <% }); %>
-                </ul>
-                <ul class="facet-choices-available">
-                  <% facet.choices.each(function(choice) { %>
-                    <li class="facet-choice">
-                      <a href="#" class="add-choice" property="<%= facet.property.key %>" operator="|=" value="<%= choice._id %>">
-                        <div class="tick-icon ticked"></div>
-                        <%= choice.name %>
-                        <span class="item-count"><%= choice.count %></span>
-                      </a>
-                    </li>
-                  <% }); %>
-                </ul>
+      <div id="settings">
+        <div id="group">
+          <h3>Group by</h3>
+
+          <select id="group_key">
+            <% group_keys.each(function(p) { %>
+              <option value="<%= p.key %>"<% if (group_key && group_key[0] === p.key) {%> selected="selected"<% } %>>
+                <%= p.name %> (<%= p.all('values').length %>)
+              </option>
+            <% }); %>
+          </select>
+        </div>
+        
+        <div id="properties">
+          <h3>Properties</h3>
+          <div id="selected_properties">
+            <% _.each(properties, function(p, i) { %>
+              <div class="property<%= p.selected ? ' deselect' : ' select' %>" index="<%= i %>" property="<%= p.property %>">
+                <a href="#">
+                  <div class="color" style="background: <%= propertyColors(p.property) %>"></div>
+                  <span><%= p.name %></span>
+                </a>
+                <select class="aggregator" name="aggregator">
+                  <option value="SUM"<%= p.aggregator == "SUM" ? " selected" : "" %>>SUM</option>
+                  <option value="AVG"<%= p.aggregator == "AVG" ? " selected" : "" %>>AVG</option>
+                  <option value="MIN"<%= p.aggregator == "MIN" ? " selected" : "" %>>MIN</option>
+                  <option value="MAX"<%= p.aggregator == "MAX" ? " selected" : "" %>>MAX</option>
+                  <option value="COUNT"<%= p.aggregator == "COUNT" ? " selected" : "" %>>CNT</option>
+                </select>
               </div>
             <% }); %>
           </div>
         </div>
+      </div>
+      
+      <div id="sheet_header">
+        Considering <%= filtered_collection.items().length %> items out of <%= collection.items().length %> total
+      </div>
+      
+      <div id="visualization">
+        <div id="canvas">
         
+        </div>
+      </div>
+    </script>
+    
+    <script type="text/x-ejs-template" name="project">
+      <div id="project">
         <div id="project_header">
           <h2 id="project_title" title="Click to edit"><%= project.get('title') %></h2>
           <div class="project-actions"><a href="#" class="delete-project" title="Delete Project">Delete</a></div>
@@ -425,13 +418,12 @@
             <div class="new-sheet sheet"><a href="#new-sheet">+</a></div>
           </div>
         </div>
-        
+      </div>
+      
+      <div id="sheet">
         <div id="sheet_header">
-          Considering <%= filtered_collection.items().length %> items out of <%= collection.items().length %> total
-        </div>
-        
-        <div id="visualization">
-          Loading Visualization ...
+          <h2>Loading project...</h2>
+          <p>Depending on the amount of data this may take a while.<br/><br/></p>
         </div>
       </div>
     </script>
@@ -469,7 +461,6 @@
     <script type="text/javascript" src="/javascripts/views/user_settings.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser.js"></script>
     <script type="text/javascript" src="/javascripts/views/sheet.js"></script>
-    <script type="text/javascript" src="/javascripts/views/visualization.js"></script>
     
     <!-- App -->
     <script type="text/javascript" src="/javascripts/app.js"></script>

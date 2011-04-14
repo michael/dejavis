@@ -1854,16 +1854,20 @@ div.intro {
   padding-left: 10px;
 }
 
+#properties .property a {
+  text-decoration: none;
+  border: none;
+}
+
 #properties .property {
   padding: 4px 0;
 }
 
-
-#properties .property.add .color {
+#properties .property.select .color {
   opacity: 0.3;
 }
 
-#properties .property.add {
+#properties .property.select a {
   color: #aaa;
 }
  
@@ -1879,11 +1883,20 @@ div.intro {
   
 }
 
+
+#project {
+  overflow: auto;
+  background: #ddd;
+  margin: 0 270px 0 270px;
+}
+
 #project_header {
   position: relative;
-  background: #fff;
   padding: 10px 20px 0 20px;
-  margin: 0 270px 0 270px;
+}
+
+#project_title {
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
 }
 
 #project .project-actions {
@@ -1894,12 +1907,11 @@ div.intro {
 
 #sheets {
   padding: 0px 20px 0 20px;
-  background: #fff;
-  margin: 0 270px 0 270px;
+/*  background: #fff;*/
+/*  margin: 0 270px 0 270px;*/
 }
 
 #sheets .sheet-tabs {
-  border-bottom: 1px solid #ccc;
   overflow: auto;
 }
 
@@ -1911,7 +1923,7 @@ div.intro {
 }
 
 #sheets .sheet-tabs .sheet.selected {
-  background: #ccc;
+  background: #fff;
 }
 
 #sheets .sheet-tabs a {
@@ -1958,16 +1970,12 @@ svg .bar text {
 #settings {
   float: right;
   width: 250px;
-  position: relative;
-  top: -115px;
 }
 
 /* body > #container > #sheet > #facets
 -------------------------------------------------------------------------------*/
 
-#project {
-  overflow: auto;
-}
+
 
 #facets { 
   margin-top: 0px; margin-right: 10px; float: left; width: 260px; padding: 0 0 20px 0;
