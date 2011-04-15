@@ -12,8 +12,8 @@ var Sheet = Backbone.View.extend({
     'click .add-choice': 'addChoice',
     'click .remove-choice': 'removeChoice',
     'change #group_key': 'updateGroupKey',
-    'click .property.select': 'selectProperty',
-    'click .property.deselect': 'deselectProperty',
+    'click .property.select a': 'selectProperty',
+    'click .property.deselect a': 'deselectProperty',
     'change select.aggregator': 'switchAggregator'
   },
   
@@ -247,6 +247,8 @@ var Sheet = Backbone.View.extend({
         properties: this.collection.properties().toJSON()
       });
     }
+    
+    this.compute();
   },
   
   storeSettings: function() {
@@ -309,7 +311,7 @@ var Sheet = Backbone.View.extend({
   },
   
   selectProperty: function(e) {
-    this.properties[$(e.currentTarget).attr('index')].selected = true;
+    this.properties[$(e.currentTarget).parent().attr('index')].selected = true;
     this.compute();
     this.render();
     this.storeSettings();
@@ -317,7 +319,7 @@ var Sheet = Backbone.View.extend({
   },
   
   deselectProperty: function(e) {
-    this.properties[$(e.currentTarget).attr('index')].selected = false;
+    this.properties[$(e.currentTarget).parent().attr('index')].selected = false;
     this.compute();
     this.render();
     this.storeSettings();
@@ -346,9 +348,9 @@ var Sheet = Backbone.View.extend({
     });
     
     if (this.groupKey.length > 0) {
-      this.groupedItems = this.collection.group(this.groupKey, properties);
+      this.groupedItems = this.filteredCollection.group(this.groupKey, properties);
     } else {
-      this.groupedItems = this.collection;
+      this.groupedItems = this.filteredCollection;
     }
   },
   
