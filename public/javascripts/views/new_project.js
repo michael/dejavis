@@ -42,7 +42,7 @@ var NewProject = Backbone.View.extend({
         dataType: "json",
         success: function(res) {
           if (res.status === 'error') {
-            app.project.new(name, title, datasource);
+            app.project.newProject(name, title, datasource);
           } else {
             $('#create_project input[name=new_project_name]').addClass('error');
             $('#new_project_name_message').html('This project name is already taken.');

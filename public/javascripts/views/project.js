@@ -3,7 +3,7 @@ var Project = Backbone.View.extend({
   events: {
     'click .new-sheet': 'toggleNewSheet',
     'click .sheet a': 'switchSheet',
-    'click a.delete-project': 'delete',
+    'click a.delete-project': 'deleteProject',
     'click a.delete-sheet': 'deleteSheet'
   },
   
@@ -27,9 +27,9 @@ var Project = Backbone.View.extend({
     return false;
   },
   
-  delete: function() {
+  deleteProject: function() {
     var that = this;
-    var id = this.model._id
+    var id = this.model._id;
     if (confirm('Are you sure to delete this project?')) {
       graph.del(id);
       app.browser.graph.del(id);
@@ -65,7 +65,7 @@ var Project = Backbone.View.extend({
   // Data operations
   // --------------
   
-  new: function(name, title, datasourceId) {
+  newProject: function(name, title, datasourceId) {
     var that = this;
     function emptyProject() {
       
@@ -95,7 +95,7 @@ var Project = Backbone.View.extend({
     this.model = emptyProject();
 
     window.sync(function() {
-      that.load(app.username, name);
+      that.load(app.username, name, 1);
       // Update browser graph
       if (app.browser && app.browser.query && app.browser.query.type === "user" && app.browser.query.value === app.username) {
         app.browser.graph.set('objects', that.model._id, that.model);
