@@ -302,6 +302,32 @@
       </div>
     </script>
     
+    <script type="text/x-ejs-template" name="new_sheet">
+      <div id="new_sheet" class="page-content">
+        <h1>New Sheet</h1>
+        <form id="create_sheet">
+          <div>
+            <label for="new_sheet_name">Sheet Name:<span>Keep it short</span></label>
+            <input type="text" id="new_sheet_name" name="new_sheet_name"/>
+            <br class="clear"/>
+            <div class="input-message" id="new_sheet_name"></div>
+          </div>
+          
+          <div>
+            <label for="datasource">Datasource:<span>Choose a data source</span></label>
+            <select id="datasource" name="datasource">
+            </select>
+            <div class="input-messages"></div>
+          </div>
+          
+          <div>
+            <label for="">&nbsp;</label>
+            <input type="submit" value="Create Sheet"/>
+          </div>
+        </form>
+      </div>
+    </script>
+    
     <script type="text/x-handlebars-template" name="browser_not_supported">
       <div class="browser-not-supported">
         <h1>Dejavis.org
@@ -326,6 +352,8 @@
     
     <script type="text/x-ejs-template" name="sheet">
       <div id="facets">
+        <h2>Filters</h2>
+        <div class="item-count"><%= filtered_collection.items().length %> / <%= collection.items().length %> items</div>
         <div class="list">
           <% facets.each(function(facet) { %>
             <div class="facet" operator="|=" property="<%= facet.property.key %>">
@@ -358,6 +386,7 @@
       </div>
       
       <div id="settings">
+        <h2>Settings</h2>
         <div id="group">
           <h3>Group by</h3>
 
@@ -392,8 +421,14 @@
         </div>
       </div>
       
-      <div id="sheet_header">
-        Considering <%= filtered_collection.items().length %> items out of <%= collection.items().length %> total
+      <!--<div id="sheet_name"><h2><%= sheet.get('name') %></h2></div>-->
+      <div id="sheet_editor_controls"></div>
+      <div id="sheet_description" title="Click to edit" class="<%= !sheet.get('descr') || sheet.get('descr') === '' ? "empty" : "" %>">
+        <% if (!sheet.get('descr') || sheet.get('descr') === '') { %>
+          &laquo; Enter Sheet Description &raquo;
+        <% } else { %>
+          <%= sheet.get('descr') %>
+        <% } %>
       </div>
       
       <div id="visualization">
@@ -412,8 +447,12 @@
         
         <div id="sheets">
           <div class="sheet-tabs">
-            <% project.get('sheets').each(function(sheet) { %>
-              <div id="active_sheet_tab" class="sheet selected"><%= sheet %></div>
+            <% project.get('sheets').each(function(sheet, key, index) { %>
+              <% if (sheet === activeSheet) { %>
+                <div id="active_sheet_tab" title="Click to edit sheet name" sheet="<%= sheet._id %>" class="sheet selected"><%= sheet.get('name') %></div>
+              <% } else { %>
+                <div sheet="<%= sheet._id %>" class="sheet"><a href="#<%= project.get('creator')._id.split('/')[2]+"/"+project.get('name')+"/"+(index+1) %>"><%= sheet.get('name') %></a> <a class="delete-sheet" href="#">x</a></div>
+              <% } %>
             <% }); %>
             <div class="new-sheet sheet"><a href="#new-sheet">+</a></div>
           </div>
@@ -422,7 +461,7 @@
       
       <div id="sheet">
         <div id="sheet_header">
-          <h2>Loading project...</h2>
+          <h2>Loading sheet...</h2>
           <p>Depending on the amount of data this may take a while.<br/><br/></p>
         </div>
       </div>
@@ -431,6 +470,7 @@
     <!-- Libs -->
     <script type="text/javascript" src="/javascripts/underscore.js"></script>
     <script type="text/javascript" src="/javascripts/jquery.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.hotkeys.js"></script>
     <script type="text/javascript" src="/javascripts/backbone.js"></script>
     <script type="text/javascript" src="/javascripts/data.js"></script>
     <script type="text/javascript" src="/javascripts/ajax_adapter.js"></script>
@@ -443,9 +483,6 @@
     <script type="text/javascript" src="/javascripts/notifier.js"></script>
     <script type="text/javascript" src="/javascripts/helpers.js"></script>
     
-    <!-- Data -->
-    <script type="text/javascript" src="/javascripts/hardware_report.js"></script>
-    
     <!-- Visualization -->
     <script type="text/javascript" src="/javascripts/barchart.js"></script>
     
@@ -457,6 +494,7 @@
     <script type="text/javascript" src="/javascripts/views/project.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser_tab.js"></script>
     <script type="text/javascript" src="/javascripts/views/new_project.js"></script>
+    <script type="text/javascript" src="/javascripts/views/new_sheet.js"></script>
     <script type="text/javascript" src="/javascripts/views/signup.js"></script>
     <script type="text/javascript" src="/javascripts/views/user_settings.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser.js"></script>

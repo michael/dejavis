@@ -26,6 +26,44 @@
   font-style: italic;
 }
 
+
+
+/* Scrollbars
+-------------------------------------------------------------------------------*/
+
+::-webkit-scrollbar {
+  width:6px;
+  height:6px;
+}
+
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment {
+  display:block;
+  height:8px;
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+/*  background-color:#fff;*/
+}
+
+::-webkit-scrollbar-track-piece {
+  background-color: #ccc; /*#F0EAEA;*/
+  -webkit-border-radius:3px;
+}
+
+::-webkit-scrollbar-thumb:vertical {
+  height:50px;
+  background-color: #888; /*#ead2d2;*/
+  -webkit-border-radius:3px;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  width:50px;
+  background-color:#ccc;
+  -webkit-border-radius:3px;
+}
+
+
 /* Common styles
 -------------------------------------------------------------------------------*/
 
@@ -956,9 +994,9 @@ table tr.draft, table tr.draft a {
 /*#document a.remove { border: none; }*/
 #document p { margin-bottom: 20px; min-height: 22px;}
 
-#document ol { padding-left: 20px; margin-bottom: 10px;}
-#document ul { padding-left: 20px; margin-bottom: 10px;}
-#document li { }
+ol { padding-left: 20px; margin-bottom: 10px;}
+ul { padding-left: 20px; margin-bottom: 10px;}
+li { }
 
 #document .document-separator { background: #000; margin: auto; width: 300px; height: 1px; margin-top: 50px; margin-bottom: 50px; }
 
@@ -1638,7 +1676,7 @@ pre {
 -------------------------------------------------------------------------------*/
 
 .proper-commands {
-  position: absolute;
+/*  position: absolute;
   left: -11px;
   top: 170px;
   width: 100px;
@@ -1646,7 +1684,8 @@ pre {
   margin-right: -10px;
   margin-top: 0px;
   margin-bottom: 30px;
-  padding: 5px;
+  padding: 5px;*/
+  height: 30px;
 }
 
 .proper-commands .command {
@@ -1840,6 +1879,10 @@ div.intro {
 #footer .version { float: right; }
 
 
+#properties {
+  font-size: 12px;
+}
+
 #properties div.color {
   float: left;
   width: 20px;
@@ -1850,6 +1893,10 @@ div.intro {
   background: #fff;
 }
 
+#properties select {
+  float: right;
+}
+
 #properties .property span {
   padding-left: 10px;
 }
@@ -1857,6 +1904,7 @@ div.intro {
 #properties .property a {
   text-decoration: none;
   border: none;
+  max-width: 50px;
 }
 
 #properties .property {
@@ -1876,7 +1924,7 @@ div.intro {
   margin: auto;
 }
 
-/* body > #container > #sheet > #visualization
+/* body > #container > #project
 -------------------------------------------------------------------------------*/
 
 #visualization {
@@ -1918,7 +1966,7 @@ div.intro {
 #sheets .sheet-tabs .sheet {
   float: left;
   background: #eee;
-  padding: 0 5px;
+  padding: 1px 8px;
   margin-right: 5px;
 }
 
@@ -1930,6 +1978,24 @@ div.intro {
   border: none;
 }
 
+/* body > #container > #project > #sheet
+-------------------------------------------------------------------------------*/
+
+
+#new_sheet {
+  padding: 20px;
+  background: #fff;
+  margin: 0 270px 0 270px;
+}
+
+#new_sheet h1 {
+  border: none;
+}
+
+#new_sheet input[type=text] {
+  border: 1px solid #ccc;
+}
+
 #sheet_header {
   background: #fff;
   padding: 20px 20px 0 20px;
@@ -1937,11 +2003,39 @@ div.intro {
   text-transform: uppercase;
 }
 
+#sheet_editor_controls {
+  background: #fff;
+  padding: 20px 20px 0 20px;
+  margin: 0 270px 0 270px;
+}
+
+#sheet_name {
+  background: #fff;
+  padding: 0 20px;
+  padding-top: 30px;
+  margin: 0 270px 0 270px;
+  background: #fff;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+  color: #000;
+}
+
+#sheet_description {
+  background: #fff;
+  padding: 20px 20px 20px 20px;
+  margin: 0 270px 0 270px;
+  
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #555;
+}
+
 #canvas {
   background: #fff;
-  overflow: auto;
+  margin: 0 270px 0 270px;
+  padding-bottom: 50px;
   min-height: 700px;
-  margin-right: 20px;
+/*  margin-right: 20px;*/
 }
 
 #canvas .info {
@@ -1969,6 +2063,7 @@ svg .bar text {
 
 #settings {
   float: right;
+  margin-top: 50px;
   width: 250px;
 }
 
@@ -1977,9 +2072,19 @@ svg .bar text {
 
 
 
-#facets { 
-  margin-top: 0px; margin-right: 10px; float: left; width: 260px; padding: 0 0 20px 0;
+#facets {
+  margin-top: 50px; margin-right: 10px; float: left; width: 260px; padding: 0 0 20px 0;
   padding: 10px 10px 10px 0;
+}
+
+#facets h2, #facets h3 {
+  text-align: right;
+}
+#facets div.item-count {
+  text-align: right;
+  font-size: 13px;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+  color: #888;
 }
 
 #facets .no-filters {

@@ -85,7 +85,7 @@ var Application = Backbone.View.extend({
     var user = $(e.currentTarget).attr('user');
         name = $(e.currentTarget).attr('name');
     
-    app.project.load(user, name);
+    app.project.load(user, name, 1);
     return false;
   },
   
@@ -234,8 +234,7 @@ var remote,                              // Remote handle for server-side method
     // Init Application
     // --------------
     
-    var items = new Data.Collection(items_fixture);
-    app = new Application({el: '#container', model: items, session: session});
+    app = new Application({el: '#container', session: session});
     
     app.render();
         

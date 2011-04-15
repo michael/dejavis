@@ -21,7 +21,6 @@ var Sheet = Backbone.View.extend({
   
   initialize: function(options) {
     // Default properties
-    this.project = options.project;
     this.groupKey = [];
     this.properties = [];
     this.settings = {};
@@ -46,11 +45,12 @@ var Sheet = Backbone.View.extend({
     // Init filters
     this.filters = new Data.Hash();
     this.settings = this.model.get('settings') || {};
-    
+
     if (this.settings.properties && this.settings.properties.length > 0 && typeof this.settings.properties[0] == 'object') {
       this.properties = this.settings.properties;
       this.groupKey = this.settings.group_key;
     } else {
+      that.properties = [];
       // Init properties
       this.availableProperties().each(function(p, key) {
         that.properties.push({
@@ -83,12 +83,51 @@ var Sheet = Backbone.View.extend({
         }
       }
     });
-    
+
     this.filter();
     this.updateFacets();
   },
   
-  load: function(sheet) {
+  // Initializes text editors
+  initEditors: function() {
+    var that = this;
+    if (app.project.mode !== 'edit') return;
+    
+    // Editor for title
+    this.$descr = $('#sheet_description').attr('contenteditable', true).unbind();
+    
+    this.$descr.click(function() {
+      editor.activate(that.$descr, {
+        placeholder: 'Enter Sheet Description',
+        controlsTarget: $('#sheet_editor_controls')
+      });
+
+      editor.bind('changed', function() {
+        that.model.set({
+          descr: editor.content()
+        });
+      });
+    });
+    
+    // Editor for sheet name
+    this.$sheetTab = $('#active_sheet_tab').attr('contenteditable', true).unbind();
+    
+    this.$sheetTab.click(function() {
+      editor.activate(that.$sheetTab, {
+        placeholder: 'Enter Sheet Description',
+        markup: false,
+        multiline: false
+      });
+
+      editor.bind('changed', function() {
+        that.model.set({
+          name: editor.content()
+        });
+      });
+    });
+  },
+  
+  load: function(sheet, callback) {
     var that = this;
     that.collection = that.filteredCollection = null;
     
@@ -106,14 +145,16 @@ var Sheet = Backbone.View.extend({
           that.filteredCollection = that.collection;
           that.initSheet();
           that.trigger('loaded');
+          if (callback) callback();
+          that.project = that.model;
           that.compute();
           that.render();
         } else {
-          $('#project_wrapper').html("<div id=\"project\"><div id=\"project_header\"><h2>The sheet couldn't be loaded.</h2><p>You may not be permitted to access the datasource.<br/><br/></p></div></div>");
+          $('#sheet').html("<h2>The sheet couldn't be loaded.</h2><p>You may not be permitted to access the datasource.<br/><br/></p>");
         }
       },
       error: function(err) {
-        $('#project_wrapper').html("The sheet couldn't be loaded.");
+        $('#sheet').html("The sheet couldn't be loaded.");
       }
     });
   },
@@ -254,7 +295,8 @@ var Sheet = Backbone.View.extend({
   storeSettings: function() {
     var that = this;
     // Settings are only stored for the owner
-    if (this.project.model.get('creator')._id !== "/user/"+app.username) return;
+
+    if (app.project.model.get('creator')._id !== "/user/"+app.username) return;
     
     this.settings = {filters: {}, group_key: null, properties: []};
     this.filters.each(function(filter, key) {
@@ -334,7 +376,7 @@ var Sheet = Backbone.View.extend({
   
   // Extract group keys
   groupKeys: function() {
-    return this.collection.properties().select(function(p) {
+    return this.filteredCollection.properties().select(function(p) {
       return p.expectedTypes[0] === 'string'
     });
   },
@@ -362,6 +404,7 @@ var Sheet = Backbone.View.extend({
         group_keys: this.groupKeys(),
         group_key: this.groupKey,
         facets: this.facets,
+        sheet: this.model,
         collection: this.collection,
         filtered_collection: this.filteredCollection
       }));
@@ -383,7 +426,10 @@ var Sheet = Backbone.View.extend({
       } else {
         this.$('#canvas').html('<div class="info"><h2>Please choose some properties on the right tab.</h2></div>');
       }
+      this.initEditors();
     }
+    
+    
     
     this.delegateEvents();
     return this;

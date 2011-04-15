@@ -1,30 +1,29 @@
-// Project
-// --------------
-
 var Project = Backbone.View.extend({
-  events: {
-    'click .new-sheet': 'newSheet',
-    'click .sheet': 'switchSheet',
-    'click a.delete-project': 'delete',
-  },
-  
   el: '#project_wrapper',
-  
-  loadedProjects: {},
-  
-  initialize: function(options) {
-    this.app = options.app;
-    _.bindAll(this, "render");
-    
-    this.sheet = new Sheet({project: this});
+  events: {
+    'click .new-sheet': 'toggleNewSheet',
+    'click .sheet a': 'switchSheet',
+    'click a.delete-project': 'delete',
+    'click a.delete-sheet': 'deleteSheet'
   },
   
-  switchSheet: function() {
+  // Event handlers
+  // --------------
+  
+  switchSheet: function(e) {
+    var sheetId = $(e.currentTarget).parent().attr('sheet');
+    var sheet = graph.get(sheetId);
+    this.activeSheet = sheet;
+    this.sheet.collection = null;
+    this.render();
+    controller.saveLocation('#'+this.model.get('creator')._id.split('/')[2]+'/'+this.model.get('name')+'/'+(this.model.get('sheets').index(sheetId)+1));
+    this.sheet.load(sheet);
     return false;
   },
   
-  newSheet: function() {
-    alert("Not available yet. We're working on it.");
+  toggleNewSheet: function() {
+    var newSheet = new NewSheet();
+    newSheet.render();
     return false;
   },
   
@@ -44,6 +43,99 @@ var Project = Backbone.View.extend({
     return false;
   },
   
+  deleteSheet: function(e) {
+    var sheetId = $(e.currentTarget).parent().attr('sheet');
+    
+    this.model.set({
+      sheets: _.without(this.model.get('sheets').keys(), sheetId)
+    });
+    this.render();
+    return false;
+  },
+  
+  loadedProjects: {},
+  
+  initialize: function(options) {
+    this.app = options.app;
+    _.bindAll(this, "render");
+    this.sheet = new Sheet({project: this});
+  },
+  
+  
+  // Data operations
+  // --------------
+  
+  new: function(name, title, datasourceId) {
+    var that = this;
+    function emptyProject() {
+      
+      var project = graph.set(Data.uuid('/project/'+ app.username +'/'), {
+        type: "/type/project",
+        creator: "/user/"+app.username,
+        created_at: new Date(),
+        updated_at: new Date(),
+        name: name,
+        sheets: [],
+        title: title
+      });
+      var sheet = graph.set(null, {
+        type: "/type/sheet",
+        name: "Sheet 1",
+        project: project._id,
+        datasource: datasourceId
+      });
+      project.set({
+        sheets: [sheet._id]
+      });
+      return project;
+    }
+    
+    // disable auto-sync for the moment
+    window.pendingSync = true;
+    this.model = emptyProject();
+
+    window.sync(function() {
+      that.load(app.username, name);
+      // Update browser graph
+      if (app.browser && app.browser.query && app.browser.query.type === "user" && app.browser.query.value === app.username) {
+        app.browser.graph.set('objects', that.model._id, that.model);
+        app.browser.render();
+      }
+    });
+  },
+  
+  // Create a new sheet for the current project and load it
+  newSheet: function(name, datasourceId) {
+    
+    var that = this;
+    function createSheet() {
+      var sheet = graph.set(null, {
+        type: "/type/sheet",
+        name: name,
+        project: that.model._id,
+        datasource: datasourceId
+      });
+      
+      var sheets = that.model.get('sheets').keys();
+      sheets.push(sheet._id);
+
+      that.model.set({
+        sheets: sheets
+      });
+      return sheet;
+    }
+    
+    // disable auto-sync for the moment
+    window.pendingSync = true;
+    var sheet = createSheet();
+    that.render();
+    
+    window.sync(function() {
+      that.sheet.load(sheet);
+      that.sheet.render();
+    });
+  },
+  
   makeEditable: function() {
     var that = this;
     if (this.mode !== 'edit') return;
@@ -51,24 +143,27 @@ var Project = Backbone.View.extend({
     // Editor for title
     this.$node = $('#project_title').attr('contenteditable', true).unbind();
     
-    editor.activate(this.$node, {
-      placeholder: 'Enter Project Title',
-      multiline: false,
-      markup: false
-    });
-    
-    editor.bind('changed', function() {
-      that.model.set({
-        title: editor.content()
+    this.$node.click(function() {
+      editor.activate(that.$node, {
+        placeholder: 'Enter Project Title',
+        multiline: false,
+        markup: false
+      });
+
+      editor.bind('changed', function() {
+        that.model.set({
+          title: editor.content()
+        });
       });
     });
+
   },
   
-  load: function(username, projectname, mode) {
+  load: function(username, projectname, sheetNr) {
     var that = this;
     
-    this.activeSheet = null;
-    that.mode = mode || (username === app.username ? 'edit' : 'show');
+    that.mode = username === app.username ? 'edit' : 'show';
+    
     $('#tabs').show();
     
     function init(id) {
@@ -76,20 +171,17 @@ var Project = Backbone.View.extend({
 
       if (that.model) {
         // Load first sheet by default
-        that.sheet.load(that.model.get('sheets').first());
-        
-        that.sheet.bind('loaded', function() {
-          that.activeSheet = that.sheet.model;
-        });
-        
+        that.activeSheet = that.model.get('sheets').at(sheetNr-1);
+        that.sheet.load(that.activeSheet);
+
         // Update browser graph reference
         app.browser.graph.set('objects', id, that.model);
         app.toggleView('project');
         that.render();
         
         if (controller) {
-          controller.saveLocation('#'+username+'/'+projectname);
-          $('#project_wrapper').attr('url', '#'+username+'/'+projectname);
+          controller.saveLocation('#'+username+'/'+projectname+'/'+sheetNr);
+          $('#project_wrapper').attr('url', '#'+username+'/'+projectname+'/'+sheetNr);
         }
       } else {
         $('#project_wrapper').html('Project loading failed');
@@ -117,44 +209,6 @@ var Project = Backbone.View.extend({
     });
   },
   
-  new: function(name, title, datasourceId) {
-    var that = this;
-    function emptyProject() {
-      // disable auto-sync for the moment
-      window.pendingSync = true;
-      var project = graph.set(Data.uuid('/project/'+ app.username +'/'), {
-        type: "/type/project",
-        creator: "/user/"+app.username,
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: name,
-        sheets: [],
-        title: title
-      });
-      var sheet = graph.set(null, {
-        type: "/type/sheet",
-        name: "Sheet 1",
-        project: project._id,
-        datasource: datasourceId
-      });
-      project.set({
-        sheets: [sheet._id]
-      });
-      return project;
-    }
-    
-    this.model = emptyProject();
-
-    window.sync(function() {
-      that.load(app.username, name);
-      // Update browser graph
-      if (app.browser && app.browser.query && app.browser.query.type === "user" && app.browser.query.value === app.username) {
-        app.browser.graph.set('objects', that.model._id, that.model);
-        app.browser.render();
-      }
-    });
-  },
-  
   renderTab: function() {
     if (this.model) {
       $('#project_tab').show();
@@ -176,12 +230,13 @@ var Project = Backbone.View.extend({
   render: function() {
     $(this.el).html(_.tpl('project', {
       project: this.model,
+      activeSheet: this.activeSheet
     }));
     
     this.renderTab();
     this.sheet.render();
-    
     this.delegateEvents();
+    this.makeEditable();
     return this;
   }
 });

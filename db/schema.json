@@ -209,6 +209,12 @@
         "type": "string",
         "default": ""
       },
+      "descr": {
+        "name": "Description",
+        "unique": true,
+        "type": "string",
+        "default": ""
+      },
       "project": {
         "name": "Project Membership",
         "unique": true,

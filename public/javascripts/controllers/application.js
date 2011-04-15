@@ -1,17 +1,18 @@
 var ApplicationController = Backbone.Controller.extend({
   routes: {
-    '^(?!search)(.*)\/(.*)$': 'loadProject',
     '^(?!search)(.*)\/(.*)\/(.*)$': 'loadProject',
+    '^(?!search)(.*)\/(.*)$': 'loadProject',
     ':username': 'userProjects',
     '^search\/(.*)$': 'searchProjects'
   },
   
-  loadProject: function(username, projectname, node) {
+  loadProject: function(username, projectname, sheetNr) {
+    if (!sheetNr) sheetNr = 1;
     
     app.browser.load({"type": "user", "value": username});
-    app.project.load(username, projectname);
-
-    $('#project_wrapper').attr('url', '#'+username+'/'+projectname);
+    app.project.load(username, projectname, sheetNr);
+    
+    $('#project_wrapper').attr('url', '#'+username+'/'+projectname+'/'+sheetNr);
     $('#browser_wrapper').attr('url', '#'+username);
     return false;
   },
@@ -32,7 +33,6 @@ var ApplicationController = Backbone.Controller.extend({
     }
     
     $('#browser_wrapper').attr('url', '#'+username);
-    
     app.browser.bind('loaded', function() {
       app.toggleView('browser');
       app.browser.unbind('loaded');

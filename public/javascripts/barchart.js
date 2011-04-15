@@ -114,7 +114,7 @@ var Barchart = function(el, options) {
             .append("svg:g")
             .attr("class", "plotarea")
             .attr('width', 50)
-            .attr("transform", "translate(20, 50)")
+            .attr("transform", "translate(20, 0)")
     
     // Items
     // --------------
