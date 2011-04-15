@@ -79,7 +79,7 @@ var Project = Backbone.View.extend({
         that.sheet.load(that.model.get('sheets').first());
         
         that.sheet.bind('loaded', function() {
-          that.activeSheet = sheet;
+          that.activeSheet = that.sheet.model;
         });
         
         // Update browser graph reference

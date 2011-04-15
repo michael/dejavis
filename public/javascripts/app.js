@@ -276,7 +276,9 @@ var remote,                              // Remote handle for server-side method
     graph.bind('dirty', function() {
       if (!window.pendingSync) {
         window.pendingSync = true;
-        setTimeout(window.sync, 3000);
+        setTimeout(function() {
+          window.sync();
+        }, 3000);
       }
     });
     
