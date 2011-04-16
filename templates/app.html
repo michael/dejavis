@@ -11,7 +11,7 @@
     
     <script type="text/x-ejs-template" name="header">
       <div class="title">
-        Déjàvis
+        <a href="#">Déjàvis</a>
       </div>
       <div id="sync_state"></div>
       <div id="login_state">
@@ -127,53 +127,38 @@
     <script type="text/x-ejs-template" name="startpage">
       <div id="startpage">
         <div class="intro"><b>Déjàvis</b> is a tool for analyzing and visualizing data.</div>
-        <p class="feature-descr">To enter the workspace please log in with your username or password.</p>
-        <!-- Features -->
         
-        <!--<div id="features">
-          <div class="feature write">
-            <div class="feature-wrapper">
-              <h1 class="feature-title">
-                Browse
-              </h1>
-              <p class="feature-descr">
-                <b>Find</b> and <b>display</b> data visualization projects.
-              </p> 
-              <ul class="feature-properties">
-                <li>
-                  <div>Search by Keyword</div>
-                  <div class="descr">Find relevant projects based on keywords</div>
-                </li>
-                <li>
-                  <div>Publish</div>
-                  <div class="descr">Publish and instantly share your projects</div>
-                </li>
-              </ul>
-            </div>
+        <div id="features">
+          <div class="feature">
+            <a href="#michael"><img src="/images/explore.png"/></a>
+            <h2><a href="#michael">Explore</a></h2>
+            <p>
+              <b>Get to know your data.</b> Déjàvis provides means that allow you to explore huge datasets and reveal <i>hidden connections</i> or <i>similarities</i>.
+              Filtering is based on the effectiveness of the <a href="http://en.wikipedia.org/wiki/Faceted_search">Faceted Browsing</a> UI paradigm and enables you
+              to visualize and browse arbitrary datasets. You can adjust filters at any time, or step back to viewing the whole dataset.
+            </p>
           </div>
-
-          <div class="feature browse">
-            <div class="feature-wrapper">
-              <h1 class="feature-title">
-                Analyze
-              </h1>
-              <p class="feature-descr">
-                <b>Analyze</b> and <b>visualize</b> data right in the <b>browser</b>.
-              </p>
-              <ul class="feature-properties">
-                <li>
-                  <div>Filter</div>
-                  <div class="descr">Filter data items using faceted navigation</div>
-                </li>
-                <li>
-                  <div>Visualize</div>
-                  <div class="descr">Create visualizations from existing data sources.</div>
-                </li>
-              </ul>
-            </div>
+          <div class="feature">
+            <a href="#michael/countries"><img src="/images/visualize.png"/></a>
+            <h2><a href="#michael/countries">Visualize</a></h2>
+            <p>
+              <b>Visualize data within minutes.</b> After registration you can start creating interactive visualizations from existing data sources. 
+              Once your visualization shows interesting facts, you&#39;re one click away from publishing it, and share the link with other people. It&#39;s as easy as that!
+            </p><p>
+              But don&#39;t take our word for it. Here&#39;s an <a href="#michael/countries/1"><b>example project</b></a>, showing indicators for the world&#39;s countries.
+            </p>
           </div>
-
-        </div>-->
+          <div class="feature">
+            <a href="http://substance.io/#dejavis/dejavis"><img src="/images/contribute.png"/></a>
+            
+            <h2><a href="http://substance.io/#dejavis/dejavis">Contribute</a></h2>
+            <p>
+              <b>Contribute and make sense of your own data.</b> Déjàvis can handle arbitrary data, as long as it is provided in a special <code>Data.Collection</code> format.
+              You can think of a Collection as a table of data, except it provides precise information about the contained data (meta-data). 
+              At this early stage we need you to get in touch with us. You data will be available within minutes. 
+            </p>
+          </div>
+        </div>
       </div>
     </script>
     
@@ -544,8 +529,8 @@
         </div>
       </div>
       <div id="footer">
-        <div class="credits"><a href="http://substance.io#substance/dejavis">About</a> &middot; <a href="http://twitter.com/_dejavis" target="_new">Twitter</a> &middot; <a href="http://github.com/michael/dejavis" target="_new">Source Code</a> &middot; <a href="http://github.com/michael/dejavis/issues" target="_new">Report Bugs</a></div>
-        <div class="version"><a href="http://substance.io#substance/release-notes">Dejavis 0.1.0-dev</a></div>
+        <div class="credits"><a href="http://substance.io#dejavis/dejavis">About</a> &middot; <a href="http://twitter.com/_dejavis" target="_new">Twitter</a> &middot; <a href="http://github.com/michael/dejavis" target="_new">Source Code</a> &middot; <a href="http://github.com/michael/dejavis/issues" target="_new">Report Bugs</a></div>
+        <div class="version">Dejavis 0.1.0-dev</div>
       </div>
     </div>
     

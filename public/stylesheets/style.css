@@ -1781,61 +1781,33 @@ div.intro {
 #features {
   overflow: auto;
   font-size: 14px;
+  border-bottom: 1px solid #CCC;
+}
+
+#features .feature h2 {
+  font-size: 28px;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+}
+
+#features .feature h2 a {
+  border: none;
+  color: #333;
+}
+
+#features .feature h2 a:hover {
+  color: #000;
 }
 
 #features .feature {
-  width: 43%;
+  overflow: auto;
+  margin-bottom: 40px;
+}
+
+#features .feature img {
   float: left;
-  margin-right: 20px;
-}
-
-#features .feature .feature-wrapper {
-  max-width: 250px;
-}
-
-.feature .feature-title {
-  text-transform: uppercase;
-  font-family: Helvetica;
-  font-weight: bold;
-  padding-left: 50px;
-  font-size: 20px;
-  color: #000;
-  margin-bottom: 30px;
-}
-
-.feature.browse .feature-title {
-  background: url(../images/icons/black/article_32x32.png) center left no-repeat;
-}
-
-.feature.write .feature-title {
-  background: url(../images/icons/black/pen_32x32.png) center left no-repeat;
-}
-
-.feature.contribute .feature-title {
-  background: url(../images/icons/black/heart_fill_32x38.png) center left no-repeat;
-}
-
-#features .feature-descr {
-  font-size: 15px;
-  margin-bottom: 20px;
-}
-
-#features .feature-properties {
-  font-family: Helvetica;
-  list-style-type:square;
-  list-style-image:url("../images/icons/black/pen_12x12.png");
-  padding-left: 20px;
-}
-
-
-.feature-properties li {
-  margin-bottom: 5px;
-  color: #000;
-}
-
-.feature-properties li .descr {
-  color: #888;
-  font-size: 12px;
+  margin-right: 50px;
+  border: 1px solid #ccc;
+  background: white;
 }
 
 #donations_total {
