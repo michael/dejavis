@@ -6,6 +6,8 @@ _.propertyColors = function(properties) {
   return d3.scale.ordinal().domain(properties).range(['#8DB5C8', '#90963C', '#B16649', '#A2C355', '#93BAA1', '#808E89', '#86A2A9']);
 };
 
+_.format = d3.format(".2f");
+
 var Sheet = Backbone.View.extend({
   events: {
     'change #group_key': 'updateGroupKey',
@@ -406,6 +408,7 @@ var Sheet = Backbone.View.extend({
         facets: this.facets,
         sheet: this.model,
         collection: this.collection,
+        grouped_items: this.groupedItems,
         filtered_collection: this.filteredCollection
       }));
       

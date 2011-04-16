@@ -1880,15 +1880,68 @@ div.intro {
 }
 
 #properties .property {
-  padding: 4px 0;
+  padding: 6px 0;
+  opacity: 0.4;
+  margin-top: 30px;
+  position: relative;
+}
+
+#properties .property.deselect {
+  opacity: 1;
+}
+
+
+#properties .property .min {
+  position: absolute;
+  font-size: 11px;
+  line-height: 10px;
+  left: 0px;
+  top: -18px;
+  padding-left: 5px;
+  border-left: 1px solid #000;
+}
+
+#properties .property .max {
+  position: absolute;
+  font-size: 11px;
+  line-height: 10px;
+  right: 0px;
+  top: -18px;
+  padding-right: 5px;
+  border-right: 1px solid #000;
+}
+
+#properties .property .min .line {
+  position: absolute;
+  width: 4px;
+  left: -1px;
+  top: 5px;
+  border-bottom: 1px solid #000;
+}
+
+#properties .property .max .line {
+  position: absolute;
+  width: 4px;
+  right: -1px;
+  top: 5px;
+  border-bottom: 1px solid #000;
+}
+
+/*#properties .property.deselect:hover {
+  opacity: 0.8;
+}*/
+
+#properties .property.select:hover {
+  opacity: 0.6;
 }
 
 #properties .property.select .color {
   opacity: 0.3;
 }
 
-#properties .property.select a {
-  color: #aaa;
+
+#properties .property a {
+  color: #fff;
 }
  
 .body {
@@ -1909,6 +1962,8 @@ div.intro {
   background: #ddd;
   margin: 0 270px 0 270px;
 }
+
+
 
 #project_header {
   position: relative;
@@ -1953,6 +2008,14 @@ div.intro {
 /* body > #container > #project > #sheet
 -------------------------------------------------------------------------------*/
 
+#sheet h2 {
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+  text-transform: uppercase;
+  font-size: 20px;
+  border-bottom: 1px solid;
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+}
 
 #new_sheet {
   padding: 20px;
@@ -2071,11 +2134,10 @@ svg .bar text {
 #facets .list { overflow: auto; }
 
 h3 {
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
-  font-weight: lighter;
-  font-style: italic;
-  font-size: 16px;
-  padding: 1px; padding-top: 9px; margin-bottom: 13px; margin-left: 0px; padding-left: 0px; font-weight: normal; margin-top: 1px; 
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 1px; padding-top: 9px; margin-bottom: 13px; margin-left: 0px; padding-left: 0px; font-weight: normal; margin-top: 1px;
+  font-weight: bold;
 }
 
 #facets .facet { }
@@ -2083,19 +2145,27 @@ h3 {
 #facets .facet ul.facet-choices-available {max-height: 160px; overflow: auto;}
 
 #facets .facet.selected ul { display: block; }
-#facets .facet li { position: relative; list-style: none; margin: 0; padding-left: 0px; padding-top: 5px; overflow: none; color: #888; }
+#facets .facet li { 
+  position: relative; list-style: none; margin: 0; margin-bottom: 2px; padding: 0px 0; overflow: none; color: #888;
+  
+  -webkit-border-radius:3px;
+  -moz-border-radius:   3px;
+  border-radius:        3px;
+}
+
+
 
 #facets .facet li a {
   display: block; 
   color: #888;
   width: 190px;
-  height: 18px;
-  font-size: 13px;
+/*  height: 18px;*/
+  font-size: 12px;
   white-space: nowrap;
-  padding-left: 30px;
+  padding-left: 5px;
 }
 
-#facets .facet li a:hover { text-decoration: none; color: #000; }
+
 #facets .facet li a:hover .tick-icon { border-color: #000; }
 
 #facets .facet li a span.item-count {
@@ -2104,12 +2174,41 @@ h3 {
   font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
   font-style: italic;
   font-weight: bold;
-  color: #bbb; margin-left: 5px; padding: 0 5px; font-size: 18px;
+  color: #bbb; margin-left: 5px; padding: 0 5px; font-size: 14px;
 }
 
-#facets .facet li.selected a span.item-count, #facets .facet li:hover a span.item-count { color: black; }
 
-#facets .facet li a div.tick-icon { 
+#facets .facet li.selected {
+  background: #666;
+}
+
+#facets .facet li:hover {
+  background: #eee;
+}
+
+#facets .facet li.selected:hover {
+  background: #333;
+}
+
+#facets .facet li.selected a {
+  color: #fff;
+}
+
+#facets .facet li.selected a span.item-count {
+  color: white;
+}
+
+#facets .facet li.selected:hover a span.item-count {
+  color: white;
+}
+
+#facets .facet li a:hover { text-decoration: none; color: #444; }
+#facets .facet li:hover a span.item-count { color: #444; }
+
+
+
+#facets .facet li a div.tick-icon {
+  display: none;
   position: absolute;
   left: 0px;
   top: 5px;
@@ -2121,9 +2220,12 @@ h3 {
 
 #facets .facet .facet-choices { overflow: hidden; margin-bottom: 4px; }
 #facets .facet li.facet-choice { color: #888; }
-#facets .facet li.facet-choice.selected a { color: black; }
+#facets .facet li.facet-choice.selected a { color: white; }
 
 #facets .facet li.facet-choice.selected a div.tick-icon {
   border-color: #000;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGZJREFUeNpi/P//PwMpgImBRECyBgYinCQAxAFwtQQ0GADxe5BakCZ0DSCTEpAUJyApBtEGyBpAis9DJUEKG6BsuGJ0JxUgKfiPTTE2P8zHpxiXp+fjUowvlPqxKYZpYCQ1aQAEGACY7lEYFmjlwgAAAABJRU5ErkJggg==);
 }
+
+
+
