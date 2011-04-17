@@ -509,7 +509,7 @@ graph.fetch({"type|=": ["/type/type", "/type/config"]}, function(err, nodes) {
     console.log(err);
   } else {
     seed = nodes.toJSON();
-    console.log('READY: Dejavis is listening http://localhost:6006');
-    app.listen(6006);
+    console.log('READY: Dejavis is listening http://localhost:'+config['server_port']);
+    app.listen(config['server_port']);
   }
 });
