@@ -4,7 +4,9 @@ var Project = Backbone.View.extend({
     'click .new-sheet': 'toggleNewSheet',
     'click .sheet a.switch-sheet': 'switchSheet',
     'click a.delete-project': 'deleteProject',
-    'click a.delete-sheet': 'deleteSheet'
+    'click a.delete-sheet': 'deleteSheet',
+    'click a.publish-project': 'publishProject',
+    'click a.unpublish-project': 'unpublishProject',
   },
   
   // Event handlers
@@ -18,6 +20,22 @@ var Project = Backbone.View.extend({
     this.render();
     controller.saveLocation('#'+this.model.get('creator')._id.split('/')[2]+'/'+this.model.get('name')+'/'+(this.model.get('sheets').index(sheetId)+1));
     this.sheet.load(sheet);
+    return false;
+  },
+  
+  publishProject: function() {
+    this.model.set({
+      published_on: new Date()
+    });
+    this.render();
+    return false;
+  },
+  
+  unpublishProject: function() {
+    this.model.set({
+      published_on: null
+    });
+    this.render();
     return false;
   },
   

@@ -430,7 +430,16 @@
       <div id="project">
         <div id="project_header">
           <h2 id="project_title" title="Click to edit"><%= project.get('title') %></h2>
-          <div class="project-actions"><a href="#" class="delete-project" title="Delete Project">Delete</a></div>
+          <% if (project.get('published_on')) { %>
+            <p>Published: <%= _.prettyDate(project.get('published_on')) %>
+            <% if (app.project.mode == 'edit') { %> — <a href="#" class="unpublish-project" title="Publish Project">Unpublish</a><% } %></p>
+          <% } else { %>
+            <p>Published: Not yet
+            <% if (app.project.mode == 'edit') { %> — <a href="#" class="publish-project" title="Publish Project">Publish</a><% } %>
+          <% } %>
+          <div class="project-actions">
+            <% if (app.project.mode == 'edit') { %><a href="#" class="delete-project" title="Delete Project">Delete</a><% } %>
+          </div>
         </div>
         
         <div id="sheets">
@@ -439,10 +448,13 @@
               <% if (sheet === activeSheet) { %>
                 <div id="active_sheet_tab" title="Click to edit sheet name" sheet="<%= sheet._id %>" class="sheet selected"><%= sheet.get('name') %></div>
               <% } else { %>
-                <div sheet="<%= sheet._id %>" class="sheet"><a class="switch-sheet" href="#<%= project.get('creator')._id.split('/')[2]+"/"+project.get('name')+"/"+(index+1) %>"><%= sheet.get('name') %></a> <a class="delete-sheet" href="#">x</a></div>
+                <div sheet="<%= sheet._id %>" class="sheet">
+                  <a class="switch-sheet" href="#<%= project.get('creator')._id.split('/')[2]+"/"+project.get('name')+"/"+(index+1) %>"><%= sheet.get('name') %></a>
+                  <% if (app.project.mode == 'edit') { %><a class="delete-sheet" href="#">x</a><% } %>
+                </div>
               <% } %>
             <% }); %>
-            <div class="new-sheet"><a href="#new-sheet">+</a></div>
+            <% if (app.project.mode == 'edit') { %><div class="new-sheet"><a href="#new-sheet">+</a></div><% } %>
           </div>
         </div>
       </div>
