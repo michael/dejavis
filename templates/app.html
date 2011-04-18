@@ -153,9 +153,9 @@
             
             <h2><a href="http://substance.io/#dejavis/dejavis">Contribute</a></h2>
             <p>
-              <b>Contribute and make sense of your own data.</b> Déjàvis can handle arbitrary data, as long as it is provided in a special <code>Data.Collection</code> format.
+              <b>Contribute and make sense of your own data.</b> Déjàvis can handle arbitrary datasets, as long as they&#39;re provided in a special <code>Data.Collection</code> format.
               You can think of a Collection as a table of data, except it provides precise information about the contained data (meta-data). 
-              At this early stage we need you to get in touch with us. You data will be available within minutes. 
+              At this early stage we need you to get in touch with us. We&#39;ll make available your datasource shortly.
             </p>
           </div>
         </div>
@@ -338,7 +338,7 @@
     <script type="text/x-ejs-template" name="sheet">
       <div id="facets">
         <h2>Filters</h2>
-        <div class="item-count"><%= filtered_collection.items().length %> / <%= collection.items().length %> items</div>
+        <div class="item-count"><%= filtered_collection.items().length %> / <%= collection.items().length %> data items</div>
         <div class="list">
           <% facets.each(function(facet) { %>
             <div class="facet" operator="|=" property="<%= facet.property.key %>">
@@ -439,10 +439,10 @@
               <% if (sheet === activeSheet) { %>
                 <div id="active_sheet_tab" title="Click to edit sheet name" sheet="<%= sheet._id %>" class="sheet selected"><%= sheet.get('name') %></div>
               <% } else { %>
-                <div sheet="<%= sheet._id %>" class="sheet"><a href="#<%= project.get('creator')._id.split('/')[2]+"/"+project.get('name')+"/"+(index+1) %>"><%= sheet.get('name') %></a> <a class="delete-sheet" href="#">x</a></div>
+                <div sheet="<%= sheet._id %>" class="sheet"><a class="switch-sheet" href="#<%= project.get('creator')._id.split('/')[2]+"/"+project.get('name')+"/"+(index+1) %>"><%= sheet.get('name') %></a> <a class="delete-sheet" href="#">x</a></div>
               <% } %>
             <% }); %>
-            <div class="new-sheet sheet"><a href="#new-sheet">+</a></div>
+            <div class="new-sheet"><a href="#new-sheet">+</a></div>
           </div>
         </div>
       </div>

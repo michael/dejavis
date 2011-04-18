@@ -1990,7 +1990,7 @@ div.intro {
   overflow: auto;
 }
 
-#sheets .sheet-tabs .sheet {
+#sheets .sheet-tabs .sheet, #sheets .sheet-tabs .new-sheet {
   float: left;
   background: #eee;
   padding: 1px 8px;

@@ -2,7 +2,7 @@ var Project = Backbone.View.extend({
   el: '#project_wrapper',
   events: {
     'click .new-sheet': 'toggleNewSheet',
-    'click .sheet a': 'switchSheet',
+    'click .sheet a.switch-sheet': 'switchSheet',
     'click a.delete-project': 'deleteProject',
     'click a.delete-sheet': 'deleteSheet'
   },
@@ -21,7 +21,7 @@ var Project = Backbone.View.extend({
     return false;
   },
   
-  toggleNewSheet: function() {
+  toggleNewSheet: function() {    
     var newSheet = new NewSheet();
     newSheet.render();
     return false;
@@ -45,7 +45,6 @@ var Project = Backbone.View.extend({
   
   deleteSheet: function(e) {
     var sheetId = $(e.currentTarget).parent().attr('sheet');
-    
     this.model.set({
       sheets: _.without(this.model.get('sheets').keys(), sheetId)
     });
@@ -60,7 +59,6 @@ var Project = Backbone.View.extend({
     _.bindAll(this, "render");
     this.sheet = new Sheet({project: this});
   },
-  
   
   // Data operations
   // --------------
@@ -128,11 +126,13 @@ var Project = Backbone.View.extend({
     // disable auto-sync for the moment
     window.pendingSync = true;
     var sheet = createSheet();
+    
+    that.activeSheet = sheet;
+    that.sheet.collection = null;
     that.render();
     
     window.sync(function() {
       that.sheet.load(sheet);
-      that.sheet.render();
     });
   },
   
