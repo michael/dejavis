@@ -4,9 +4,30 @@ var http = require('http');
 var fs = require('fs');
 var crypto = require('crypto');
 var async = require('async');
-var Data = require('data');
+var Data = require('./lib/data/data');
 var _ = require('underscore');
-var CouchClient = require('./lib/couch-client');
+var CouchClient = require('./lib/data/lib/couch-client');
+
+
+// Config
+// -----------
+
+global.config = JSON.parse(fs.readFileSync(__dirname+ '/config.json', 'utf-8'));
+global.seed = JSON.parse(fs.readFileSync(__dirname+ '/db/schema.json', 'utf-8'));
+
+// Express.js Configuration
+// -----------
+
+app.configure(function() {
+  app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(express.cookieParser());
+  app.use(express.session({secret: config['secret']}));
+  app.use(app.router);
+  app.use(express.static(__dirname+"/public", { maxAge: 41 }));
+  app.use(express.logger({ format: ':method :url' }));
+});
+
 
 // Helpers
 // -----------
@@ -47,16 +68,21 @@ function fetchResource(url, accessToken, clientIP, callback) {
   });
 }
 
-// App Config
-global.config = JSON.parse(fs.readFileSync(__dirname+ '/config.json', 'utf-8'));
+
+
+
 
 // Setup Data.Adapter
-Data.setAdapter('couch', { url: config.couchdb_url});
+// Data.setAdapter('couch', { url: config.couchdb_url});
 
-var seed;
+// var seed;
 var db = CouchClient(config.couchdb_url);
-var graph = new Data.Graph();
+var graph = new Data.Graph(seed);
 
+graph.setAdapter('couch', {url: config.couchdb_url});
+
+// Serve Data.js backend along with an express server
+graph.serve(app);
 
 // Fetch a single node from the graph
 function fetchNode(id, callback) {
@@ -68,11 +94,9 @@ function fetchNode(id, callback) {
 
 // Get a single project from the database, including all associated sheets
 function getProject(username, projectname, callback) {
-  db.view(db.uri.pathname+'/_design/dejavis/_view/projects', {key: username+'/'+projectname}, function(err, res) {
-    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
-    // Normally we'd just use the err object in an error case
-    if (res.error || !res.rows) {
-      callback(res.error);
+  db.view('dejavis/projects', {key: username+'/'+projectname}, function(err, res) {
+    if (err) {
+      callback(err);
     } else {
       var result = {};
       var count = 0;
@@ -118,11 +142,9 @@ function getProject(username, projectname, callback) {
 }
 
 function getPermission(datasourceId, userId, callback) {
-  db.view(db.uri.pathname+'/_design/dejavis/_view/datasource_permissions', {key: datasourceId+':/user/'+userId}, function(err, res) {
-    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
-    // Normally we'd just use the err object in an error case
-    if (res.error || !res.rows) {
-      callback(res.error, false);
+  db.view('dejavis/datasource_permissions', {key: datasourceId+':/user/'+userId}, function(err, res) {
+    if (err) {
+      callback(err, false);
     } else {
       res.rows.length > 0 ? callback(null, res.rows[0].value)
                           : callback('permission_denied', false);
@@ -167,12 +189,9 @@ function fetchData(sheetId, req, callback) {
 }
 
 function findUsers(searchstr, callback) {
-  db.view(db.uri.pathname+'/_design/dejavis/_view/users', function(err, res) {
-    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
-    // Normally we'd just use the err object in an error case
-  
-    if (res.error || !res.rows) {
-      callback(res.error);
+  db.view('dejavis/users', function(err, res) {
+    if (err) {
+      callback(err);
     } else {
       var result = {};
       var count = 0;
@@ -197,12 +216,9 @@ function findUsers(searchstr, callback) {
 // But search functionality needed to be there, quickly.
 // We'll replace it with a speedy fulltext search asap.
 function findProjects(searchstr, type, username, callback) {
-  db.view(db.uri.pathname+'/_design/dejavis/_view/projects_by_keyword', function(err, res) {
-    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
-    // Normally we'd just use the err object in an error case
-  
-    if (res.error || !res.rows && _.include(["user", "keyword"], type)) {
-      callback(res.error);
+  db.view('dejavis/projects_by_keyword', function(err, res) {
+    if (err && _.include(["user", "keyword"], type)) {
+      callback(err);
     } else {
       var result = {};
       var associatedItems = [];
@@ -246,7 +262,6 @@ function findProjects(searchstr, type, username, callback) {
   });
 }
 
-
 function findDatasources(req, callback) {
   var result = {};
   var keys = [];
@@ -256,14 +271,10 @@ function findDatasources(req, callback) {
     result = nodes.toJSON();
     keys = nodes.keys();
     
-    // console.log("/user/"+req.session.username);
-    db.view(db.uri.pathname+'/_design/dejavis/_view/datasource_permissions', {key: "/user/"+req.session.username}, function(err, res) {
-      // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
-      // Normally we'd just use the err object in an error case
-      if (res.error || !res.rows) {
+    db.view('dejavis/datasource_permissions', {key: "/user/"+req.session.username}, function(err, res) {
+      if (err) {
         callback(null, result, keys);
       } else {
-
         // Fetch associated items
         async.forEach(res.rows, function(row, callback) {
           fetchNode(row.value.datasource, function(err, node) {
@@ -279,20 +290,6 @@ function findDatasources(req, callback) {
     });
   });
 }
-
-
-// Express.js Configuration
-// -----------
-
-app.configure(function() {
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.cookieParser());
-  app.use(express.session({secret: config['secret']}));
-  app.use(app.router);
-  app.use(express.static(__dirname+"/public", { maxAge: 41 }));
-  app.use(express.logger({ format: ':method :url' }));
-});
 
 
 // Routes
@@ -356,7 +353,7 @@ app.post('/login', function(req, res) {
   var username = req.body.username.toLowerCase(),
       password = req.body.password;
   
-  var graph = new Data.Graph(seed);
+  // var graph = new Data.Graph(seed);
   graph.fetch({type: '/type/user'}, function(err) {
     if (!err) {
       var user = graph.get('/user/'+username);
@@ -390,7 +387,7 @@ app.post('/logout', function(req, res) {
 app.post('/updateuser', function(req, res) {
   var username = req.body.username;
   
-  var graph = new Data.Graph(seed);
+  // var graph = new Data.Graph(seed);
   graph.fetch({type: '/type/user'}, function(err) {
     var user = graph.get('/user/'+username);
     if (!user) return res.send({"status": "error"});
@@ -444,10 +441,8 @@ app.post('/register', function(req, res) {
     return res.send({"status": "error", "field": "username", "message": "Please choose a username."});
   }
   
-  db.view(db.uri.pathname+'/_design/dejavis/_view/users', {key: username.toLowerCase()}, function(err, result) {
-    // Bug-workarount related to https://github.com/creationix/couch-client/issues#issue/3
-    // Normally we'd just use the err object in an error case
-    if (result.error || !result.rows) return res.send({"status": "error", "field": "all", "message": "Unknown error."});
+  db.view('dejavis/users', {key: username.toLowerCase()}, function(err, result) {
+    if (err) return res.send({"status": "error", "field": "all", "message": "Unknown error."});
     if (result.rows.length > 0) return res.send({"status": "error", "field": "username", "message": "Username is already taken."});
     
     var user = graph.set('/user/'+username.toLowerCase(), {
@@ -484,32 +479,5 @@ app.post('/register', function(req, res) {
   });
 });
 
-// readgraph Interface
-// app.get('/readgraph', function(req, res) {
-//   var callback = req.query.callback,
-//       query = JSON.parse(req.query.qry),
-//       options = JSON.parse(req.query.options)
-//   Data.adapter.readGraph(JSON.parse(req.query.qry), new Data.Graph(), JSON.parse(req.query.options), function(err, g) {
-//     err ? res.send(callback+"("+JSON.stringify(err)+");")
-//         : res.send(callback+"("+JSON.stringify(g)+");");
-//   }, req);
-// });
-
-// writegraph Interface
-app.put('/writegraph', function(req, res) {
-  Data.adapter.writeGraph(req.body, function(err, g) {
-    graph.merge(g); // TODO: memory leakin?
-    err ? res.send(err) : res.send(JSON.stringify({"status": "ok", "graph": g}));
-  }, req);
-});
-
-graph.fetch({"type|=": ["/type/type", "/type/config"]}, function(err, nodes) {
-  if (err) {
-    console.log("ERROR: Couldn't fetch schema");
-    console.log(err);
-  } else {
-    seed = nodes.toJSON();
-    console.log('READY: Dejavis is listening http://localhost:'+config['server_port']);
-    app.listen(config['server_port']);
-  }
-});
+console.log('READY: Dejavis is listening http://'+config['server_host']+':'+config['server_port']);
+app.listen(config['server_port'], config['server_host']);

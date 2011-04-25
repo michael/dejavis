@@ -68,7 +68,6 @@ var Sheet = Backbone.View.extend({
       this.groupKey = [this.groupKeys()[0].key];
     }
     
-    console.log(this.collection);
     this.collection.properties().each(function(property, key) {
       if (property.meta.facet) {
         that.filters.set(key, {

@@ -204,13 +204,13 @@ var Application = Backbone.View.extend({
   }
 });
 
-Data.setAdapter('AjaxAdapter');
 
-var remote,                              // Remote handle for server-side methods
-    app,                                 // The Application
-    controller,                          // Controller responding to routes
-    editor,                              // A global instance of the Proper Richtext editor
-    graph = new Data.Graph(seed, false); // The database
+var remote,     // Remote handle for server-side methods
+    app,        // The Application
+    controller, // Controller responding to routes
+    editor,     // A global instance of the Proper Richtext editor
+    graph = new Data.Graph(seed, false).setAdapter('ajax');
+
 
 (function() {
   $(function() {

@@ -13,11 +13,6 @@
     }
   },
   
-  "/config/dejavis": {
-    "type": "/type/config",
-    "allow_user_registration": true
-  },
-  
   "/type/user": {
     "_id": "/type/user",
     "type": "/type/type",
