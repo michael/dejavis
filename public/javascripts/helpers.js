@@ -6,6 +6,42 @@
  * © 2010 Colin Snover <http://zetafleet.com>
  * Released under MIT license.
  */
+ 
+var DataStreamer = {
+ stream: function(json, options) {
+   var collection,
+       nodes,
+       chunksTotal,
+       chunkCount = 0;
+
+   function nextChunk() {
+     chunkCount += 1;
+     var count = 0;
+     var nodeId = nodes.pop();
+
+     // Process chunk
+     while (nodeId && count < options.chunksize-1) {
+       collection.set(nodeId, json["items"][nodeId]);
+       nodeId = nodes.pop();
+       count += 1;
+     }
+
+     // Update progress
+     options.progress((chunkCount/chunksTotal));
+
+     setTimeout(function() {
+       nodes.length === 0 ? options.finished(collection)
+                          : nextChunk();
+     }, 1);
+   }
+
+   nodes = _.keys(json.items);
+   chunksTotal = Math.ceil(nodes.length / options.chunksize);
+   collection = new Data.Collection({properties: json.properties, items: {}});
+   nextChunk(1);
+ }
+};
+ 
 (function () {
     _.date = function (date) {
         var timestamp = Date.parse(date), minutesOffset = 0, struct;

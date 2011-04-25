@@ -1,4 +1,4 @@
-// Visualization
+// Sheet
 // --------------
 
 // Map property keys to colors
@@ -68,6 +68,7 @@ var Sheet = Backbone.View.extend({
       this.groupKey = [this.groupKeys()[0].key];
     }
     
+    console.log(this.collection);
     this.collection.properties().each(function(property, key) {
       if (property.meta.facet) {
         that.filters.set(key, {
@@ -143,14 +144,22 @@ var Sheet = Backbone.View.extend({
       dataType: "json",
       success: function(res) {
         if (!res.status) {
-          that.collection = new Data.Collection(res);
-          that.filteredCollection = that.collection;
-          that.initSheet();
-          that.trigger('loaded');
-          if (callback) callback();
-          that.project = that.model;
-          that.compute();
-          that.render();
+          DataStreamer.stream(res, {
+            chunksize: 200,
+            finished: function(c) {
+              that.collection = c;
+              that.filteredCollection = that.collection;
+              that.initSheet();
+              that.trigger('loaded');
+              if (callback) callback();
+              that.project = that.model;
+              that.compute();
+              that.render();
+            },
+            progress: function(progress) {
+              $('#data_progress').html("Initializing... "+parseInt(progress*100)+"% complete");
+            }
+          });
         } else {
           $('#sheet').html("<h2>The sheet couldn't be loaded.</h2><p>You may not be permitted to access the datasource.<br/><br/></p>");
         }
@@ -345,7 +354,6 @@ var Sheet = Backbone.View.extend({
     this.facets = facets;
   },
   
-  
   updateGroupKey: function() {
     this.groupKey = [$('#group_key').val()];
     this.compute();
@@ -431,8 +439,6 @@ var Sheet = Backbone.View.extend({
       }
       this.initEditors();
     }
-    
-    
     
     this.delegateEvents();
     return this;
