@@ -35,5 +35,5 @@ var NewSheet = Backbone.View.extend({
     var datasource = $('#create_sheet select[name=datasource]').val();
     app.project.newSheet(name, datasource);
     return false;
-  },
+  }
 });

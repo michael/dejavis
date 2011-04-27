@@ -45,14 +45,26 @@ var Sheet = Backbone.View.extend({
     
     // Init filters
     this.filters = new Data.Hash();
+    this.properties = [];
+    this.groupKey = [];
+    
     this.settings = this.model.get('settings') || {};
-
+    
     if (this.settings.properties && this.settings.properties.length > 0 && typeof this.settings.properties[0] == 'object') {
-      this.properties = this.settings.properties;
-      this.groupKey = this.settings.group_key;
-    } else {
-      that.properties = [];
-      // Init properties
+      _.each(this.settings.properties, function(p) {
+        if (that.filteredCollection.properties().get(p.property)) {
+          that.properties.push(p);
+        }
+      });
+      _.each(this.settings.group_key, function(pkey) {
+        if (that.filteredCollection.properties().get(pkey)) {
+          that.groupKey.push(pkey);
+        }
+      });
+    }
+    
+    // Default property set
+    if (that.properties.length === 0) {
       this.availableProperties().each(function(p, key) {
         that.properties.push({
           property: key,
@@ -62,8 +74,10 @@ var Sheet = Backbone.View.extend({
           aggregator: "SUM"
         });
       });
-      
-      // Default groupKey
+    }
+    
+    // Default groupKey
+    if (this.groupKey.length == 0) {
       this.groupKey = [this.groupKeys()[0].key];
     }
     
@@ -159,11 +173,11 @@ var Sheet = Backbone.View.extend({
             }
           });
         } else {
-          $('#sheet').html("<h2>The sheet couldn't be loaded.</h2><p>You may not be permitted to access the datasource.<br/><br/></p>");
+          $('#sheet_header').html("<h2>The sheet couldn't be loaded.</h2><p>You may not be permitted to access the datasource.<br/><br/></p>");
         }
       },
       error: function(err) {
-        $('#sheet').html("The sheet couldn't be loaded.");
+        $('#sheet_header').html("The sheet couldn't be loaded.");
       }
     });
   },
