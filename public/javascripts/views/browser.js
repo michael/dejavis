@@ -10,6 +10,7 @@ var Browser = Backbone.View.extend({
     this.app = options.app;
     this.browserTab = new BrowserTab({el: '#browser_tab', browser: this});
     this.projects = [];
+    this.graph = new Data.Graph(seed);
   },
   
   // Modfies query state (reflected in the BrowserTab)
