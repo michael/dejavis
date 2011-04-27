@@ -6,6 +6,25 @@ _.dist = function(a, b) {
 
 var items;
 
+// Takes a Data.Hash of Data.Objects and a numeric property
+_.min = function(items, property) {
+  var result = Infinity;
+  items.each(function(item, key, index) {
+    var value = item.get(property);
+    if (_.isNumber(value) && value < result) result = value;
+  });
+  return result;
+}
+
+_.max = function(items, property) {
+  var result = -Infinity;
+  items.each(function(item, key, index) {
+    var value = item.get(property);
+    if (_.isNumber(value) && value > result) result = value;
+  });
+  return result;
+}
+
 var Barchart = function(el, options) {
   var c;
   var id = options.id;
@@ -28,16 +47,14 @@ var Barchart = function(el, options) {
   }
   
   function prepareData() {
-    max = d3.max(c.items(), function(d) {
-      return d3.max(properties, function(p) {
-        return d.get(p);
-      });
+    max = -Infinity;
+    _.each(properties, function(p, index) {
+      max = _.max(c.items(), p);
     });
     
-    min = d3.min(c.items(), function(d) {
-      return d3.min(properties, function(p) {
-        return d.get(p);
-      });
+    min = Infinity;
+    _.each(properties, function(p, index) {
+      min = _.min(c.items(), p);
     });
     
     var fullScale = d3.scale.linear()
@@ -55,20 +72,18 @@ var Barchart = function(el, options) {
       var unit = p.meta && p.meta.unit ? p.meta.unit : "default";
       
       if (units[unit]) {
-        units[unit].min = Math.min(units[unit].min, d3.min(c.items(), function(d) { return d.get(pkey); }));
-        units[unit].max = Math.max(units[unit].max, d3.max(c.items(), function(d) { return d.get(pkey); }));
+        units[unit].min = Math.min(units[unit].min, _.min(c.items(), pkey));
+        units[unit].max = Math.max(units[unit].max, _.max(c.items(), pkey));
       } else {
         units[unit] = {
-          min: d3.min(c.items(), function(d) { return d.get(pkey); }),
-          max: d3.max(c.items(), function(d) { return d.get(pkey); })
+          min: _.min(c.items(), pkey),
+          max: _.max(c.items(), pkey)
         }
       }
     });
     
     // Build scales for units
     _.each(units, function(unit, key) {
-      // var nullPos = 200;
-      
       if (!(Math.abs(unit.min - unit.max) > 0)) {
         unit.max = unit.min + 1;
       }
@@ -210,7 +225,7 @@ var Barchart = function(el, options) {
     
     bars.append('svg:rect')
       .attr("height", barHeight)
-      .attr("width", function(d, i) { 
+      .attr("width", function(d, i) {
         return Math.max(~~_.dist(scale(d.property, d.value), scale(d.property, 0)), 2); 
       })
       .attr("fill", function(d, i) { return propertyColors(properties[i]); })
@@ -218,7 +233,7 @@ var Barchart = function(el, options) {
       
     bars.append('svg:text')
       .text(function(d) {
-        var str = ~~d.value;
+        var str = _.format(d.value, 2);
         if (d.property.meta && d.property.meta.unit) str += " "+d.property.meta.unit;
         return str;
       })
