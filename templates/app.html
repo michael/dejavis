@@ -373,7 +373,13 @@
       <div id="settings">
         <div id="group">
           <h2>Group by</h2>
-
+          
+          <% if (group_key) { %>
+            <% _.each(group_key, function(property) { %>
+              <div><%= group_keys.get(property).name %> <a property="<%= property %>" class="remove-groupkey-member" href="#">x</a></div>
+            <% }); %>
+          <% } %>
+          
           <select id="group_key">
             <% group_keys.each(function(p) { %>
               <option value="<%= p.key %>"<% if (group_key && group_key[0] === p.key) {%> selected="selected"<% } %>>

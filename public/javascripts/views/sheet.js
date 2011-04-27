@@ -9,10 +9,10 @@ _.propertyColors = function(properties) {
 
 var Sheet = Backbone.View.extend({
   events: {
-    'change #group_key': 'updateGroupKey',
+    'change #group_key': 'addGroupKeyMember',
+    'click a.remove-groupkey-member': 'removeGroupKeyMember',
     'click .add-choice': 'addChoice',
     'click .remove-choice': 'removeChoice',
-    'change #group_key': 'updateGroupKey',
     'click .property.select a': 'selectProperty',
     'click .property.deselect a': 'deselectProperty',
     'change select.aggregator': 'switchAggregator'
@@ -366,8 +366,16 @@ var Sheet = Backbone.View.extend({
     this.facets = facets;
   },
   
-  updateGroupKey: function() {
-    this.groupKey = [$('#group_key').val()];
+  removeGroupKeyMember: function(e) {
+    this.groupKey = _.without(this.groupKey, $(e.currentTarget).attr('property'));
+    this.compute();
+    this.render();
+    this.storeSettings();
+    return false;
+  },
+  
+  addGroupKeyMember: function() {
+    this.groupKey.push($('#group_key').val());
     this.compute();
     this.render();
     this.storeSettings();

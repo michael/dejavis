@@ -251,8 +251,14 @@ var Barchart = function(el, options) {
         .attr("transform", "translate("+ ~~scale(c.properties().get(properties[0]), 0) +", 40)")
         .attr("fill", "#444")
         .text(function(d, i) {
-          var str = d.get(id[0]);
-          return str.values ? str.values().join(", ") : str;
+          var groupNames = [];
+          
+          _.each(id, function(property) {
+            var part = d.get(property);
+            groupNames.push(part.values ? part.values().join(", ") : part);
+          });
+          
+          return groupNames.join(' / ');
         });
   }
   
