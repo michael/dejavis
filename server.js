@@ -68,18 +68,11 @@ function fetchResource(url, accessToken, clientIP, callback) {
   });
 }
 
-
-
-
-
-// Setup Data.Adapter
-// Data.setAdapter('couch', { url: config.couchdb_url});
-
 // var seed;
 var db = CouchClient(config.couchdb_url);
 var graph = new Data.Graph(seed);
 
-graph.setAdapter('couch', {url: config.couchdb_url});
+graph.connect('couch', {url: config.couchdb_url});
 
 // Serve Data.js backend along with an express server
 graph.serve(app);

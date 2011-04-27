@@ -304,8 +304,8 @@ var Sheet = Backbone.View.extend({
   
   storeSettings: function() {
     var that = this;
+    
     // Settings are only stored for the owner
-
     if (app.project.model.get('creator')._id !== "/user/"+app.username) return;
     
     this.settings = {filters: {}, group_key: null, properties: []};

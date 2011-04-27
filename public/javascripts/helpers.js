@@ -38,7 +38,7 @@ var DataStreamer = {
    nodes = _.keys(json.items);
    chunksTotal = Math.ceil(nodes.length / options.chunksize);
    collection = new Data.Collection({properties: json.properties, items: {}});
-   nextChunk(1);
+   nextChunk();
  }
 };
  
