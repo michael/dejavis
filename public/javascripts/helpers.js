@@ -71,6 +71,17 @@ if (!window.console) {
   }
 }
 
+
+_.format = function(number, maxPrecision) {
+  if (number.toString().split(".").length === 2) {
+    var precision = maxPrecision || 2;
+  } else {
+    var precision = 0;
+  }
+  return d3.format(",."+precision+"f")(number);
+}
+
+
 var Helpers = {};
 
 // Templates for the moment are recompiled every time
