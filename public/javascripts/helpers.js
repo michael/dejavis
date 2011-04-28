@@ -30,17 +30,18 @@ var DataStreamer = {
      options.progress((chunkCount/chunksTotal));
 
      setTimeout(function() {
-       nodes.length === 0 ? options.finished(collection)
+       nodes.length === 0 ? options.complete(collection)
                           : nextChunk();
      }, 1);
    }
 
    nodes = _.keys(json.items);
    chunksTotal = Math.ceil(nodes.length / options.chunksize);
-   collection = new Data.Collection({properties: json.properties, items: {}});
+   collection = new Data.Collection({properties: json.properties, items: {}, indexes: json.indexes});
    nextChunk();
  }
 };
+
  
 (function () {
     _.date = function (date) {
@@ -73,6 +74,8 @@ if (!window.console) {
 
 
 _.format = function(number, maxPrecision) {
+  if (!_.isNumber(number)) return 0;
+  
   if (number.toString().split(".").length === 2) {
     var precision = maxPrecision || 2;
   } else {
