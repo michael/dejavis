@@ -375,16 +375,19 @@
           <h2>Group by</h2>
           
           <% if (group_key) { %>
-            <% _.each(group_key, function(property) { %>
-              <div><%= group_keys.get(property).name %> <a property="<%= property %>" class="remove-groupkey-member" href="#">x</a></div>
+            <% _.each(group_key, function(property, index) { %>
+              <div class="group-key-member"><%= (index+1) %>. <%= group_keys.get(property).name %> <a property="<%= property %>" class="remove-groupkey-member" href="#">x</a></div>
             <% }); %>
           <% } %>
           
           <select id="group_key">
+            <option value="">-- Add Property -- </option>
             <% group_keys.each(function(p) { %>
-              <option value="<%= p.key %>"<% if (group_key && group_key[0] === p.key) {%> selected="selected"<% } %>>
-                <%= p.name %> (<%= p.all('values').length %>)
-              </option>
+              <% if (!_.include(group_key, p.key)) { %> 
+                <option value="<%= p.key %>">
+                  <%= p.name %> (<%= p.all('values').length %>)
+                </option>
+              <% } %>
             <% }); %>
           </select>
         </div>
@@ -515,6 +518,7 @@
     <style type="text/css">
       @import url("/stylesheets/reset.css");
       @import url("/stylesheets/style.css");
+      @import url("/stylesheets/barchart.css");
     </style>
   </head>
   <body>

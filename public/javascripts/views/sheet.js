@@ -40,7 +40,7 @@ var Sheet = Backbone.View.extend({
     this.storeSettings();
   },
   
-  initSheet: function() {
+  initSheet: function(callback) {
     var that = this;
     
     // Init filters
@@ -76,11 +76,6 @@ var Sheet = Backbone.View.extend({
       });
     }
     
-    // Default groupKey
-    if (this.groupKey.length == 0) {
-      this.groupKey = [this.groupKeys()[0].key];
-    }
-    
     this.collection.properties().each(function(property, key) {
       if (property.meta.facet) {
         that.filters.set(key, {
@@ -99,8 +94,10 @@ var Sheet = Backbone.View.extend({
       }
     });
 
-    this.filter();
-    this.updateFacets();
+    this.filter(function() {
+      that.updateFacets();
+      callback();
+    });
   },
   
   // Initializes text editors
@@ -156,17 +153,18 @@ var Sheet = Backbone.View.extend({
       dataType: "json",
       success: function(res) {
         if (!res.status) {
+          
           DataStreamer.stream(res, {
             chunksize: 200,
-            finished: function(c) {
+            complete: function(c) {
               that.collection = c;
               that.filteredCollection = that.collection;
-              that.initSheet();
-              that.trigger('loaded');
-              if (callback) callback();
               that.project = that.model;
-              that.compute();
-              that.render();
+              that.initSheet(function() {
+                that.render();
+                that.trigger('loaded');
+                if (callback) callback();
+              });
             },
             progress: function(progress) {
               $('#data_progress').html("Initializing... "+parseInt(progress*100)+"% complete");
@@ -189,27 +187,32 @@ var Sheet = Backbone.View.extend({
   addChoice: function(e) {
       var property = $(e.currentTarget).attr('property'),
           operator = $(e.currentTarget).attr('operator'),
-          value = $(e.currentTarget).attr('value');
+          value = $(e.currentTarget).attr('value'),
+          that = this;
     
     this.addValue(property, value);
-    this.filter(property);
-    this.updateFacets();
-    this.render();
-    this.storeSettings();
+    
+    this.filter(function() {
+      that.updateFacets();
+      that.render();
+      that.storeSettings();      
+    });
     return false;
   },
   
   removeChoice: function(e) {
     var property = $(e.currentTarget).attr('property'),
         operator = $(e.currentTarget).attr('operator'),
-        value = $(e.currentTarget).attr('value');
+        value = $(e.currentTarget).attr('value'),
+        that = this;
     
     this.removeValue(property, value);
     
-    this.filter(property);
-    this.updateFacets();
-    this.render();
-    this.storeSettings();
+    this.filter(function() {
+      that.updateFacets();
+      that.render();
+      that.storeSettings();
+    });
     return false;
   },
   
@@ -232,8 +235,6 @@ var Sheet = Backbone.View.extend({
     // Add new value to the filter
     filter.values.set(value, value);
     filter.objects = filter.objects.union(p.all('values').get(value).referencedObjects);
-    
-    // this.filter(property);
   },
   
   // Update facet objects by removing a particular value
@@ -244,8 +245,6 @@ var Sheet = Backbone.View.extend({
     // Remove value from the filter
     filter.values.del(value);
     filter.objects = filter.objects.difference(p.all('values').get(value).referencedObjects);
-    
-    // this.filter(property);
   },
   
   // Get values (=facet-choices) for a particular property
@@ -263,17 +262,24 @@ var Sheet = Backbone.View.extend({
       }
     });
     
+    values = new Data.Hash();
+    
     if (!activeItems) {
       values = this.collection.properties().get(property).all('values');
     } else {
-      // Construct a collection and use it for value extraction
-      var props = {};
-      props[property] = this.collection.properties().get(property).toJSON();
-      var c  = new Data.Collection({
-        items: activeItems.toJSON(),
-        properties: props
+      activeItems.each(function(item, key) {
+        // All values for a certain property
+        item.all(property).each(function(value, key) {
+          var val = values.get(key);
+          if (val) {
+            val.referencedObjects.set(item._id, item);
+          } else {
+            val = new Data.Node({value: key});
+            val.referencedObjects = new Data.Hash().set(item._id, item);
+          }
+          values.set(key, val);
+        });
       });
-      values = c.properties().get(property).all('values')
     }
     
     // Sort values
@@ -286,9 +292,9 @@ var Sheet = Backbone.View.extend({
   },
   
   // Perform filters on the input collection
-  filter: function(activeProperty) {
+  filter: function(callback) {
     var cspec = {};
-    
+    var that = this;
     // TODO: use the smallest first in order to optimize intersection()
     var items;
     
@@ -305,14 +311,35 @@ var Sheet = Backbone.View.extend({
     if (!items) { // no filters at all
       this.filteredCollection = this.collection;
       this.activeFacetCollection = this.collection;
+      this.compute(); // done twice during initialization?
+      callback();
     } else {
-      this.filteredCollection = new Data.Collection({
-        items: items.toJSON(),
-        properties: this.collection.properties().toJSON()
+      // Filter Collection as fast as possible
+      this.filteredCollection = new Data.Collection({properties: this.collection.properties().toJSON(), items: {}, indexes: this.collection.indexes()});
+      this.filteredCollection.g.replace('objects', this.filteredCollection.g.all('objects').union(items));
+      // Perform value registration manually
+      this.filteredCollection.items().each(function(obj) {
+        that.filteredCollection.properties().each(function(p, pkey) {
+          function registerValues(values) {
+            _.each(values, function(v, index) {
+              var val;
+              val = p.get('values', v);
+              if (!val) {
+                val = new Data.Node({value: v});
+                val.referencedObjects = new Data.Hash();
+                // Register value on the property
+                p.set('values', v, val);
+              }
+              val.referencedObjects.set(obj._id, obj);
+            });
+          }
+          registerValues(obj.all(pkey).keys());
+        });
       });
+      
+      this.compute();
+      callback();
     }
-    
-    this.compute();
   },
   
   storeSettings: function() {
@@ -427,6 +454,7 @@ var Sheet = Backbone.View.extend({
   },
   
   render: function() {
+    var that = this;
     if (this.collection) {
       $(this.el).html(_.tpl('sheet', {
         properties: this.properties,
@@ -448,11 +476,13 @@ var Sheet = Backbone.View.extend({
       });
       
       if ((this.groupedItems && properties.length > 0)) {
+        var key = this.groupKey;
+        
         this.visualization.update({
           collection: this.groupedItems,
           properties: properties,
           propertyColors: this.propertyColors(),
-          id: this.groupKey
+          id: this.groupKey.length == 0 && this.groupedItems.indexes() ? this.groupedItems.indexes().name || [this.groupKeys()[0].key] : this.groupKey
         });
       } else {
         this.$('#canvas').html('<div class="info"><h2>Please choose some properties on the right tab.</h2></div>');

@@ -1849,6 +1849,42 @@ div.intro {
 #footer .version { float: right; }
 
 
+/* Grouping stuff */
+
+#group .group-key-member {
+  background: #666;
+  padding: 0 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 3px;
+  position: relative;
+  
+  overflow: auto;
+  -webkit-border-radius:3px;
+  -moz-border-radius:   3px;
+  border-radius:        3px;
+}
+
+#group {
+  background: blue;
+  margin-bottom: 20px;
+}
+
+#group .group-key-member a {
+  z-index: 1000;
+  border: none;
+  display: block;
+  float: right;
+  top: 2px;
+  text-transform: none;
+  color: #ccc;
+}
+
+#group .group-key-member a:hover {
+  color: #fff;
+}
+
 #properties {
   font-size: 12px;
 }
@@ -2075,23 +2111,7 @@ div.intro {
   padding: 20px;
 }
 
-svg {
-  overflow: auto;
-}
 
-svg text {
-  font-size: 10px;
-}
-
-svg text.item-label {
-  font-size: 14px;
-  font-style: italic;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
-}
-
-svg .bar text {
-  font-size: 11px;
-}
 
 
 #settings {
@@ -2174,7 +2194,6 @@ h3 {
   font-weight: bold;
   color: #bbb; margin-left: 5px; padding: 0 5px; font-size: 14px;
 }
-
 
 #facets .facet li.selected {
   background: #666;
