@@ -28,7 +28,6 @@ app.configure(function() {
   app.use(express.logger({ format: ':method :url' }));
 });
 
-
 // Helpers
 // -----------
 
@@ -346,7 +345,7 @@ app.post('/login', function(req, res) {
   var username = req.body.username.toLowerCase(),
       password = req.body.password;
   
-  // var graph = new Data.Graph(seed);
+  var graph = new Data.Graph(seed).connect('couch', {url: config.couchdb_url});
   graph.fetch({type: '/type/user'}, function(err) {
     if (!err) {
       var user = graph.get('/user/'+username);
@@ -380,7 +379,7 @@ app.post('/logout', function(req, res) {
 app.post('/updateuser', function(req, res) {
   var username = req.body.username;
   
-  // var graph = new Data.Graph(seed);
+  var graph = new Data.Graph(seed).connect('couch', {url: config.couchdb_url});
   graph.fetch({type: '/type/user'}, function(err) {
     var user = graph.get('/user/'+username);
     if (!user) return res.send({"status": "error"});
@@ -429,7 +428,7 @@ app.post('/register', function(req, res) {
       email = req.body.email,
       name = req.body.name;
   
-  var graph = new Data.Graph(seed);
+  var graph = new Data.Graph(seed).connect('couch', {url: config.couchdb_url});
   if (!username || username.length === 0) {
     return res.send({"status": "error", "field": "username", "message": "Please choose a username."});
   }
