@@ -16,7 +16,7 @@ var encryptPassword = function (password) {
 var graph = new Data.Graph(seed, true);
 
 // Setup Data.Adapter
-graph.setAdapter('couch', { url: config.couchdb_url });
+graph.setAdapter('couch', { url: config.couchdb_url, force_updates: true });
 
 
 if (process.argv[2] == "--flush") {
