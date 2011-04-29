@@ -123,14 +123,6 @@ var Barchart = function(el, options) {
     var chart = d3.select(el)
           .append("div")
           .attr("class", "chart barchart")
-          
-          // .attr("width", width)
-          // .attr("height", height)
-          // .attr("fill", "#ccc")
-            // .append("svg:g")
-            // .attr("class", "plotarea")
-            // .attr('width', 50)
-            // .attr("transform", "translate(20, 0)")
     
     // Items
     // --------------
@@ -171,12 +163,14 @@ var Barchart = function(el, options) {
               var res = [];
               _.each(groupNames, function(name, index) {
                 if (name !== prevGroupNames[index]) {
+                  prevGroupNames = _.map(id, function() { return ""; });
                   res.push(name);
                 } else {
                   res.push("")
                 }
               });
               prevGroupNames = groupNames;
+              
               return res;
             }).enter().append("div")
               .attr("class", function(d, i) {
