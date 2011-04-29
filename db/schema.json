@@ -108,6 +108,9 @@
         "meta": {
         }
       }
+    },
+    "indexes": {
+      "by_creator": ["creator"]
     }
   },
   
@@ -133,6 +136,10 @@
         "unique": true,
         "type": "string"
       }
+    },
+    "indexes": {
+      "key": ["datasource", "user"],
+      "by_datasource": ["datasource"]
     }
   },
   
@@ -190,6 +197,9 @@
         "unique": true,
         "type": "date"
       }
+    },
+    "indexes": {
+      "key": ["creator", "name"]
     }
   },
   
@@ -228,6 +238,9 @@
         "required": true,
         "type": ["/type/datasource"]
       }
+    },
+    "indexes": {
+      "by_datasource": ["datasource"]
     }
   }
 }
