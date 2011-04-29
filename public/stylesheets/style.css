@@ -774,12 +774,12 @@ form.auth-form label {
 #documents {
   overflow: auto;
 }
-#documents table {
+table {
   padding: 0px;
   width: 100%;
 }
 
-#documents table tr:nth-child(even) {
+table tr:nth-child(even) {
   background: #E4E5E1;
 }
 
@@ -787,7 +787,7 @@ form.auth-form label {
   border: none;
 }
 
-#documents th {
+th {
   font-weight: normal;
   text-align: left;
   white-space: nowrap;
@@ -795,24 +795,24 @@ form.auth-form label {
   font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
 }
 
-#documents th.right-align {
+th.right-align {
   text-align: right;
 }
 
-#documents thead th {
+thead th {
   font-style: italic;
   font-size: 16px;
 }
 
-#documents tbody th {
+tbody th {
   font-size: 20px;
 }
 
-#documents tbody a {
+tbody a {
   position: relative;
 }
 
-#documents td {
+td {
   padding: 15px 5px 15px 5px;
 }
 

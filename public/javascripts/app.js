@@ -18,6 +18,7 @@ var Application = Backbone.View.extend({
     'click .tab': 'switchTab',
     'click a.toggle-user-settings': 'toggleUserSettings',
     'click a.toggle-signup': 'toggleSignup',
+    'click a.toggle-datasources': 'toggleDatasources',
     'click .new-project': 'newProject'
   },
   
@@ -142,6 +143,13 @@ var Application = Backbone.View.extend({
     app.browser.browserTab.render();
     $('#content_wrapper').html(_.tpl('startpage'));
     app.toggleView('content');
+    return false;
+  },
+  
+  toggleDatasources: function() {
+    this.content = new Datasources({el: '#content_wrapper'});
+    this.content.render();
+    this.toggleView('content');    
     return false;
   },
   
@@ -279,7 +287,7 @@ var remote,     // Remote handle for server-side methods
         window.pendingSync = true;
         setTimeout(function() {
           window.sync();
-        }, 3000);
+        }, 1000);
       }
     });
     

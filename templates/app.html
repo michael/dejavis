@@ -19,6 +19,7 @@
           <% if (user) { %>
             <div>
               <a href="#<%= user.get('username') %>"><b><%= user.get('name') || user.get('username') %></b></a>
+              <a href="#" class="toggle-datasources">Data Sources</a>
               <a href="#" class="toggle-user-settings">Account Settings</a>
               <a href="#logout" class="logout">Logout</a>
             </div>
@@ -252,6 +253,64 @@
             <input type="submit" id="document_name" value="Update Information"/>
           </div>
         </form>
+      </div>
+    </script>
+    
+    <script type="text/x-ejs-template" name="datasources">
+      <div id="datasources" class="page-content">
+        <h1>Your Data Sources</h1>
+        
+        <form id="new_datasource">
+        <table id="owned_datasources">
+          <thead><tr><th>Name</th><th>URL</th><th class="right-align">Action</th></tr></thead>
+          <tbody>
+          <% datasources.each(function(ds) { %>
+            <tr datasource="<%= ds._id %>">
+              <td><input type="text" class="update-datasource name" name="name" value="<%= ds.get('name') %>"/>
+              <td><input type="text" class="update-datasource url" name="url" value="<%= ds.get('url') %>"/></td>
+              <td class="right-align"><a class="edit-datasource" datasource="<%= ds._id %>" href="#"><img src="/images/icons/black/key_stroke_16x16.png"/></a> <a class="delete-datasource" href="#"><img src="/images/icons/black/x_alt_16x16.png"/></a></td>
+            </tr>
+          <% }); %>
+          <tr>
+            <td><input type="text" id="new_datasource_name" value=""/></td>
+            <td><input type="text" id="new_datasource_url" value=""/><input type="submit" value="Add" style="margin-left: 5px; width: 80px;"/></td>
+            <td></td>
+          </tr>
+          </tbody>
+        </table>
+        </form>
+        
+        <% if (datasource) { %>
+          <div id="edit_datasource">
+            <h1>Permissions: <%= datasource.get('name') %></h1>
+            
+            <form id="new_permission">
+            <table id="datasource_permissions">
+              <thead><tr><th>User</th><th>Access Token (optional)</th><th class="right-align">Action</th></tr></thead>
+              <tbody>
+              <% datasource.permissions.each(function(dsp) { %>
+                <tr permission="<%= dsp._id %>">
+                  <td><%= dsp.get('user').get('name') %></td>
+                  <td><input type="text" class="update-permission" name="access_token" value="<%= dsp.get('access_token') %>"/></td>
+                  <td class="right-align"><a class="delete-permission" href="#"><img src="/images/icons/black/x_alt_16x16.png"/></a></td>
+                </tr>
+              <% }); %>
+              <tr>
+                <td>
+                  <select id="new_permission_user">
+                    <% graph.find({"type|=": "/type/user"}).each(function(user) { %>
+                      <option value="<%= user._id %>"><%= user.get('name') %> (<%= user.get('username') %>)</option>
+                    <% }); %>
+                  </select>
+                </td>
+                <td><input type="text" id="new_permission_access_token" value=""/><input type="submit" value="Add" style="margin-left: 5px; width: 80px;"/></td>
+                <td></td>
+              </tr>
+              </tbody>
+            </table>
+            </form>
+          </div>
+        <% } %>
       </div>
     </script>
     
@@ -509,6 +568,7 @@
     <script type="text/javascript" src="/javascripts/views/new_sheet.js"></script>
     <script type="text/javascript" src="/javascripts/views/signup.js"></script>
     <script type="text/javascript" src="/javascripts/views/user_settings.js"></script>
+    <script type="text/javascript" src="/javascripts/views/datasources.js"></script>
     <script type="text/javascript" src="/javascripts/views/browser.js"></script>
     <script type="text/javascript" src="/javascripts/views/sheet.js"></script>
     

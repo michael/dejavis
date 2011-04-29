@@ -16,7 +16,7 @@ var encryptPassword = function (password) {
 var graph = new Data.Graph(seed, true);
 
 // Setup Data.Adapter
-graph.setAdapter('couch', { url: config.couchdb_url, force_updates: true });
+graph.connect('couch', { url: config.couchdb_url, force_updates: true });
 
 
 if (process.argv[2] == "--flush") {
@@ -36,8 +36,8 @@ if (process.argv[2] == "--flush") {
     console.log('invalidNodes:');
     if (invalidNodes) console.log(invalidNodes.keys());
     
-    console.log('conflictingNodes:');
-    console.log(graph.conflictingNodes().keys());
+    console.log('conflictedNodes:');
+    console.log(graph.conflictedNodes().keys());
     
     err ? console.log(err)
         : console.log('Couch seeded successfully.\nStart the server: $ node server.js');
