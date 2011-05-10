@@ -31,9 +31,11 @@ var Barchart = function(el, options) {
   var properties;
   var propertyColors;
   var data;
+  var dataItems;
   var max, min;
   var units = {};
   var height,
+      maxItems = 100,
       nullPos = 0,
       width,
       barHeight = 20,
@@ -47,14 +49,28 @@ var Barchart = function(el, options) {
   }
   
   function prepareData() {
+    
+    // Sort items by group key
+    var ASC_BY_KEY = function(item1, item2) {
+      var v1 = item1.key,
+          v2 = item2.key;
+      return v1 === v2 ? 0 : (v1 < v2 ? -1 : 1);
+    }
+    
+    // Consider at least 100 items
+    dataItems = new Data.Hash();
+    c.items().sort(ASC_BY_KEY).each(function(item, key, index) {
+      if (index < maxItems) dataItems.set(key, item);
+    });
+    
     max = -Infinity;
     _.each(properties, function(p, index) {
-      max = _.max(c.items(), p);
+      max = _.max(dataItems, p);
     });
     
     min = Infinity;
     _.each(properties, function(p, index) {
-      min = _.min(c.items(), p);
+      min = _.min(dataItems, p);
     });
     
     var fullScale = d3.scale.linear()
@@ -72,12 +88,12 @@ var Barchart = function(el, options) {
       var unit = p.meta && p.meta.unit ? p.meta.unit : "default";
       
       if (units[unit]) {
-        units[unit].min = Math.min(units[unit].min, _.min(c.items(), pkey));
-        units[unit].max = Math.max(units[unit].max, _.max(c.items(), pkey));
+        units[unit].min = Math.min(units[unit].min, _.min(dataItems, pkey));
+        units[unit].max = Math.max(units[unit].max, _.max(dataItems, pkey));
       } else {
         units[unit] = {
-          min: _.min(c.items(), pkey),
-          max: _.max(c.items(), pkey)
+          min: _.min(dataItems, pkey),
+          max: _.max(dataItems, pkey)
         }
       }
     });
@@ -123,25 +139,18 @@ var Barchart = function(el, options) {
     var chart = d3.select(el)
           .append("div")
           .attr("class", "chart barchart")
+          .append("h2")
+            .text(function() {
+              var numItems = c.items().length;
+              return "Comparing "+Math.min(numItems, maxItems)+(numItems > maxItems ? " of "+numItems : "")+" Records";
+            })
     
     // Items
     // --------------
     
-    // Sort items by group key
-    var ASC_BY_KEY = function(item1, item2) {
-      var v1 = item1.key,
-          v2 = item2.key;
-      return v1 === v2 ? 0 : (v1 < v2 ? -1 : 1);
-    };
-    
-    var dataitems = new Data.Hash();
-    c.items().sort(ASC_BY_KEY).each(function(item, key, index) {
-      dataitems.set(key, item);
-    });
-    
     var items = d3.select('div.chart')
         .selectAll('div.item')
-        .data(dataitems)
+        .data(dataItems)
         .enter().append("div")
           .attr("class", "item")
           // .attr("transform", function(d, i) { return "translate(0, "+(i*itemOffset-0.5)+")"; })
