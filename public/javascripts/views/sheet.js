@@ -6,6 +6,16 @@ _.propertyColors = function(properties) {
   return d3.scale.ordinal().domain(properties).range(['#8DB5C8', '#90963C', '#B16649', '#A2C355', '#93BAA1', '#808E89', '#86A2A9']);
 };
 
+var COLOR_PALETTES = {
+  "greenish": ["#737920", "#90963C", "#A2C355"],
+  "blueish": ["#808E89", "#5e899d", "#8DB5C8"],
+  "redish": ["#974a2c", "#B16649", "#d36538"]
+};
+
+// bluegreen 
+
+var colors = new ColorPool(COLOR_PALETTES);
+
 
 var Sheet = Backbone.View.extend({
   events: {
@@ -13,9 +23,12 @@ var Sheet = Backbone.View.extend({
     'click a.remove-groupkey-member': 'removeGroupKeyMember',
     'click .add-choice': 'addChoice',
     'click .remove-choice': 'removeChoice',
-    'click .property.select a': 'selectProperty',
-    'click .property.deselect a': 'deselectProperty',
-    'change select.aggregator': 'switchAggregator'
+    'click #available_properties .property.select': 'selectProperty',
+    'click #available_properties .property.deselect': 'deselectProperty',
+    'change select.aggregator': 'switchAggregator',
+    
+    'change #add_property select': 'addProperty',
+    'click a.remove-property': 'removeProperty'
   },
   
   el: '#sheet',
@@ -25,9 +38,49 @@ var Sheet = Backbone.View.extend({
     this.groupKey = [];
     this.properties = [];
     this.settings = {};
+    this.propertyColors = {};
     
     // Initialize visualization instance
     this.visualization = new Barchart('#canvas', {});
+  },
+  
+  addProperty: function(e) {
+    var property = this.collection.properties().get($('#add_property select').val());
+    var key = Data.uuid();
+
+    this.properties.push({
+      key: key,
+      property: property.key,
+      name: property.name,
+      selected: false,
+      aggregator: "SUM"
+    });
+    
+    this.assignColors();
+    this.render();
+    this.storeSettings();
+    return false;
+  },
+  
+  assignColors: function() {
+    var that = this;
+    colors.reset();
+    _.each(this.properties, function(p, index) {
+      var property = that.collection.properties().get(p.property);
+      that.propertyColors[p.key] = colors.getNext(property.meta.palette);
+    });
+  },
+  
+  removeProperty: function(e) {
+    var index = $(e.currentTarget).parent().attr('index');
+    
+    this.properties.splice(index, 1);
+    this.assignColors();
+    this.compute();
+    this.render();
+    this.storeSettings();
+    
+    return false;
   },
   
   switchAggregator: function(e) {
@@ -93,7 +146,9 @@ var Sheet = Backbone.View.extend({
         }
       }
     });
-
+    
+    this.assignColors();
+    
     this.filter(function() {
       that.updateFacets();
       callback();
@@ -178,10 +233,6 @@ var Sheet = Backbone.View.extend({
         $('#sheet_header').html("The sheet couldn't be loaded.");
       }
     });
-  },
-  
-  propertyColors: function() {
-    return _.propertyColors(this.properties.map(function(p) { return p.property }));
   },
   
   addChoice: function(e) {
@@ -347,7 +398,6 @@ var Sheet = Backbone.View.extend({
     
     // Settings are only stored for the owner
     if (app.project.model.get('creator')._id !== "/user/"+app.username) return;
-    
     this.settings = {filters: {}, group_key: null, properties: []};
     this.filters.each(function(filter, key) {
       that.settings.filters[key] = {
@@ -358,7 +408,6 @@ var Sheet = Backbone.View.extend({
     
     this.settings.group_key = this.groupKey;
     this.settings.properties = this.properties;
-    
     this.model.set({
       settings: that.settings
     });
@@ -410,7 +459,9 @@ var Sheet = Backbone.View.extend({
   },
   
   selectProperty: function(e) {
-    this.properties[$(e.currentTarget).parent().attr('index')].selected = true;
+    if ($(e.target).hasClass('aggregator', 'remove-property')) return;
+    
+    this.properties[$(e.currentTarget).attr('index')].selected = true;
     this.compute();
     this.render();
     this.storeSettings();
@@ -418,7 +469,9 @@ var Sheet = Backbone.View.extend({
   },
   
   deselectProperty: function(e) {
-    this.properties[$(e.currentTarget).parent().attr('index')].selected = false;
+    if ($(e.target).hasClass('aggregator', 'remove-property')) return;
+    
+    this.properties[$(e.currentTarget).attr('index')].selected = false;
     this.compute();
     this.render();
     this.storeSettings();
@@ -440,17 +493,11 @@ var Sheet = Backbone.View.extend({
   
   compute: function() {
     var properties = {};
-    
     _.each(this.properties, function(p, index) {
       if (!p.selected) return;
-      properties[p.property] = {aggregator: Data.Aggregators[p.aggregator]};
+      properties[p.key] = {aggregator: Data.Aggregators[p.aggregator], property: p.property};
     });
-    
-    if (this.groupKey.length > 0) {
-      this.groupedItems = this.filteredCollection.group(this.groupKey, properties);
-    } else {
-      this.groupedItems = this.filteredCollection;
-    }
+    this.groupedItems = this.filteredCollection.group(this.groupKey, properties);
   },
   
   render: function() {
@@ -458,7 +505,8 @@ var Sheet = Backbone.View.extend({
     if (this.collection) {
       $(this.el).html(_.tpl('sheet', {
         properties: this.properties,
-        propertyColors: this.propertyColors(),
+        available_properties: this.availableProperties(),
+        propertyColors: this.propertyColors,
         group_keys: this.groupKeys(),
         group_key: this.groupKey,
         facets: this.facets,
@@ -472,7 +520,7 @@ var Sheet = Backbone.View.extend({
       var properties = [];
       _.each(this.properties, function(p, index) {
         if (!p.selected) return;
-        properties.push(p.property);
+        properties.push(p.key);
       });
       
       if ((this.groupedItems && properties.length > 0)) {
@@ -481,15 +529,14 @@ var Sheet = Backbone.View.extend({
         this.visualization.update({
           collection: this.groupedItems,
           properties: properties,
-          propertyColors: this.propertyColors(),
-          id: this.groupKey.length == 0 && this.groupedItems.indexes() ? this.groupedItems.indexes().name || [this.groupKeys()[0].key] : this.groupKey
+          propertyColors: this.propertyColors,
+          id: this.groupKey
         });
       } else {
         this.$('#canvas').html('<div class="info"><h2>Please choose some properties on the right tab.</h2></div>');
       }
       this.initEditors();
     }
-    
     this.delegateEvents();
     return this;
   }

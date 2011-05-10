@@ -1901,6 +1901,12 @@ div.intro {
 
 #properties select {
   float: right;
+  margin-right: 17px;
+}
+
+#properties .remove-property {
+  position: absolute;
+  right: 5px;
 }
 
 #properties .property span {
@@ -1973,8 +1979,16 @@ div.intro {
   opacity: 0.3;
 }
 
+#available_properties #properties .property {
+  cursor: pointer;
+}
+
 
 #properties .property a {
+  color: #fff;
+}
+
+#add_property .property {
   color: #fff;
 }
  

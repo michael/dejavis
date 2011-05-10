@@ -232,7 +232,7 @@ var Barchart = function(el, options) {
       .attr("width", function(d, i) {
         return Math.max(~~_.dist(scale(d.property, d.value), scale(d.property, 0)), 2); 
       })
-      .attr("fill", function(d, i) { return propertyColors(properties[i]); })
+      .attr("fill", function(d, i) { return propertyColors[properties[i]]; })
       .attr("opacity", 0.8)
       
     bars.append('svg:text')

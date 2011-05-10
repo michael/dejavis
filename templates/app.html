@@ -453,16 +453,16 @@
         
         <div id="properties">
           <h2>Properties</h2>
-          <div id="selected_properties">
+          <div id="available_properties">
             <% _.each(properties, function(p, i) { %>
-              <div style="background: <%= propertyColors(p.property) %>" class="property<%= p.selected ? ' deselect' : ' select' %>" index="<%= i %>" property="<%= p.property %>">
-                <% var prop = grouped_items.properties().get(p.property); %>
+              <div style="background: <%= propertyColors[p.key] %>" class="property<%= p.selected ? ' deselect' : ' select' %>" index="<%= i %>" property="<%= p.property %>">
+                <% var prop = grouped_items.properties().get(p.key); %>
                 <% if (prop) { %>
                   <div class="min"><div class="line"></div><%= _.format(prop.aggregate(Data.Aggregators.MIN)) %></div>
                   <div class="max"><div class="line"></div><%= _.format(prop.aggregate(Data.Aggregators.MAX)) %></div>
                 <% } %>
-                <a href="#">
-                  <span><%= p.name %></span>
+                <a href="#" class="toggle-property">
+                  <span><%= p.name %> <a class="remove-property" href="#">x</a></span>
                 </a>
                 <select class="aggregator" name="aggregator">
                   <option value="SUM"<%= p.aggregator == "SUM" ? " selected" : "" %>>SUM</option>
@@ -473,6 +473,29 @@
                 </select>
               </div>
             <% }); %>
+          </div>
+          
+          <div id="add_property">
+            <div style="background: #555" class="property deselect">
+              
+              <span>Add</span>
+              <select name="property">
+                <option value="">-- Property -- </option>
+                <% available_properties.each(function(p) { %>
+                    <option value="<%= p.key %>">
+                      <%= p.name %>
+                    </option>
+                <% }); %>
+              </select>
+              
+              <!--<select class="aggregator" name="aggregator">
+                <option value="SUM">SUM</option>
+                <option value="AVG">AVG</option>
+                <option value="MIN">MIN</option>
+                <option value="MAX">MAX</option>
+                <option value="COUNT">CNT</option>
+              </select>-->
+            </div>
           </div>
         </div>
       </div>
