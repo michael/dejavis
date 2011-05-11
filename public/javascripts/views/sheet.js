@@ -214,6 +214,7 @@ var Sheet = Backbone.View.extend({
             complete: function(c) {
               that.collection = c;
               that.filteredCollection = that.collection;
+              
               that.project = that.model;
               that.initSheet(function() {
                 that.render();
@@ -497,6 +498,7 @@ var Sheet = Backbone.View.extend({
       if (!p.selected) return;
       properties[p.key] = {aggregator: Data.Aggregators[p.aggregator], property: p.property};
     });
+    
     this.groupedItems = this.filteredCollection.group(this.groupKey, properties);
   },
   
