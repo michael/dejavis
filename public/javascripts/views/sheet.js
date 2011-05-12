@@ -205,10 +205,10 @@ var Sheet = Backbone.View.extend({
       data: {
         sheet: sheet._id
       },
-      dataType: "json",
       success: function(res) {
+        res = JSON.parse(res);
+        
         if (!res.status) {
-          
           DataStreamer.stream(res, {
             chunksize: 200,
             complete: function(c) {
@@ -243,7 +243,6 @@ var Sheet = Backbone.View.extend({
           that = this;
     
     this.addValue(property, value);
-    
     this.filter(function() {
       that.updateFacets();
       that.render();
