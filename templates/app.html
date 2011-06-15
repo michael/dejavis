@@ -501,6 +501,12 @@
       </div>
       
       <!--<div id="sheet_name"><h2><%= sheet.get('name') %></h2></div>-->
+      
+      <div id="sheet_actions">
+        <div id="downloadify">
+          You must have Flash 10 installed to download this file.
+        </div>
+      </div>
       <div id="sheet_editor_controls"></div>
       <div id="sheet_description" title="Click to edit" class="<%= !sheet.get('descr') || sheet.get('descr') === '' ? "empty" : "" %>">
         <% if (!sheet.get('descr') || sheet.get('descr') === '') { %>
@@ -572,6 +578,10 @@
     <script type="text/javascript" src="/javascripts/proper.js"></script>
     <script type="text/javascript" src="/javascripts/jquery.timeago.js"></script>
     <script type="text/javascript" src="/javascripts/head.min.js"></script>
+    
+    <!-- Downloadify -->
+    <script type="text/javascript" src="/javascripts/downloadify.min.js"></script>
+    <script type="text/javascript" src="/javascripts/swfobject.js"></script>
     
     <!-- Helpers -->
     <script type="text/javascript" src="/javascripts/notifier.js"></script>

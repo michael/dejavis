@@ -2092,6 +2092,13 @@ div.intro {
   margin: 0 270px 0 270px;
 }
 
+
+#sheet_actions {
+  background: #fff;
+  padding: 20px 20px 0 20px;
+  margin: 0 270px 0 270px;
+}
+
 #sheet_name {
   background: #fff;
   padding: 0 20px;

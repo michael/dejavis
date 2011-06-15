@@ -153,6 +153,32 @@ var Sheet = Backbone.View.extend({
       that.updateFacets();
       callback();
     });
+    
+    
+    Downloadify.create('downloadify',{
+      filename: function(){
+        return "foo.csv"
+      },
+      data: function(){ 
+        return that.toCSV();
+      },
+      onComplete: function(){ 
+        alert('Your File Has Been Saved!'); 
+      },
+      onCancel: function(){ 
+        alert('You have cancelled the saving of this file.');
+      },
+      onError: function(){ 
+        alert('You must put something in the File Contents or there will be nothing to save!'); 
+      },
+      transparent: false,
+      swf: 'media/downloadify.swf',
+      downloadImage: 'images/download_csv.png',
+      width: 40,
+      height: 40,
+      transparent: true,
+      append: false
+    });
   },
   
   // Initializes text editors
@@ -234,6 +260,30 @@ var Sheet = Backbone.View.extend({
         $('#sheet_header').html("The sheet couldn't be loaded.");
       }
     });
+  },
+  
+  toCSV: function() {
+    var that = this;
+    function formatValue(text) {
+      return /[";\n]/.test(text)
+          ? "\"" + text.replace(/\"/g, "\"\"") + "\""
+          : text;
+    }
+    
+    var res = "";
+    // Headers
+    properties = this.groupedItems.properties().map(function(p) { return formatValue(p.name); }).values();
+    res += properties.join(';')+"\n";
+    
+    // Items
+    this.groupedItems.items().each(function(item) {
+      var values = that.groupedItems.properties().map(function(p) {
+        return formatValue(item.get(p.key));
+      }).values();
+      res += values.join(';')+"\n";
+    });
+    
+    return res;
   },
   
   addChoice: function(e) {
