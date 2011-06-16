@@ -2099,6 +2099,10 @@ div.intro {
   margin: 0 270px 0 270px;
 }
 
+#downloadify {
+  float: right;
+}
+
 #sheet_name {
   background: #fff;
   padding: 0 20px;

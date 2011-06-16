@@ -157,17 +157,17 @@ var Sheet = Backbone.View.extend({
     
     Downloadify.create('downloadify',{
       filename: function(){
-        return "foo.csv"
+        return app.project.model.get('name')+".csv";
       },
       data: function(){ 
         return that.toCSV();
       },
-      onComplete: function(){ 
-        alert('Your File Has Been Saved!'); 
-      },
-      onCancel: function(){ 
-        alert('You have cancelled the saving of this file.');
-      },
+      // onComplete: function(){ 
+      //   alert('Your File Has Been Saved!'); 
+      // },
+      // onCancel: function(){ 
+      //   alert('You have cancelled the saving of this file.');
+      // },
       onError: function(){ 
         alert('You must put something in the File Contents or there will be nothing to save!'); 
       },
