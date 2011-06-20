@@ -284,12 +284,21 @@ function findDatasources(req, callback) {
 }
 
 
+function clientConfig() {
+  return {
+    "number_format": config.number_format,
+    "csv_separator": config.csv_separator
+  };
+}
+
+
 // Routes
 // -----------
 
 app.get('/', function(req, res) {
   html = fs.readFileSync(__dirname+ '/templates/app.html', 'utf-8');
   res.send(html.replace('{{{{seed}}}}', JSON.stringify(seed))
+               .replace('{{{{config}}}}', JSON.stringify(clientConfig()))
                .replace('{{{{session}}}}', JSON.stringify(req.session)));
 });
 

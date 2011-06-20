@@ -265,7 +265,7 @@ var Sheet = Backbone.View.extend({
   toCSV: function() {
     var that = this;
     function formatValue(text) {
-      return /[";\n]/.test(text)
+      return new RegExp("[\";"+config.csv_separator+"\\n]").test(text)
           ? "\"" + text.replace(/\"/g, "\"\"") + "\""
           : text;
     }
@@ -273,16 +273,16 @@ var Sheet = Backbone.View.extend({
     var res = "";
     // Headers
     properties = this.groupedItems.properties().map(function(p) { return formatValue(p.name); }).values();
-    res += properties.join(';')+"\n";
+    res += properties.join(config.csv_separator)+"\n";
     
     // Items
     this.groupedItems.items().each(function(item) {
       var values = that.groupedItems.properties().map(function(p) {
-        return formatValue(item.get(p.key));
+        return _.include(p.expectedTypes, "number") ? formatValue((item.get(p.key)+"").replace(".", ","))
+                                       : formatValue(item.get(p.key));
       }).values();
-      res += values.join(';')+"\n";
+      res += values.join(config.csv_separator)+"\n";
     });
-    
     return res;
   },
   
