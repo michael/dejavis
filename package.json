@@ -5,7 +5,7 @@
   "homepage": "http://dejavis.org",
   "repository": {
     "type": "git",
-    "url": "https://github.com/substance/dejavis"
+    "url": "https://github.com/substanceasdfa/dejavis"
   },
   "dependencies": {
     "underscore": "1.2.3",
